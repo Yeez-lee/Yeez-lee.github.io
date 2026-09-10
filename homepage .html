@@ -1,0 +1,1447 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yize Li · Personal Page</title>
+
+    <!-- Font Awesome & Academicons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+
+    <!-- Theme initialization -->
+    <script>
+        (function () {
+            try {
+                var saved = localStorage.getItem('theme');
+                var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                var theme = saved || (prefersDark ? 'dark' : 'light');
+                document.documentElement.setAttribute('data-theme', theme);
+            } catch (e) {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
+
+    <style>
+        /* ============================================
+                   CSS Custom Properties (Design Tokens)
+                ============================================ */
+        :root {
+            color-scheme: light;
+
+            --color-primary: #1a73e8;
+            --color-primary-hover: #1557b0;
+            --color-bg: #f7f9fc;
+            --color-surface: #ffffff;
+            --color-text: #1f2937;
+            --color-text-secondary: #4b5563;
+            --color-text-muted: #6b7280;
+            --color-text-faint: #9ca3af;
+            --color-heading: #111827;
+            --color-border: #e5e7eb;
+            --color-border-light: #f0f2f5;
+            --color-news-bg: #fafcfe;
+            --color-avatar-bg: #e8edf3;
+            --color-tag-paper: #e67e22;
+            --color-tag-career: #8e44ad;
+            --color-tag-project: #16a34a;
+            --color-scrollbar-track: #f0f0f0;
+            --color-scrollbar-thumb: #c1c7cd;
+            --color-scrollbar-thumb-hover: #a0a7ae;
+            --glow-color: rgba(26, 115, 232, 0.08);
+            --radius-container: 16px;
+            --radius-small: 8px;
+            --radius-pill: 12px;
+            --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.05);
+            --shadow-hover: 0 8px 32px rgba(0, 0, 0, 0.08);
+            --transition-fast: 0.2s ease;
+            --transition-medium: 0.35s ease;
+            --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+        }
+
+        /* ============================================
+                   Dark Theme
+                ============================================ */
+        [data-theme="dark"] {
+            color-scheme: dark;
+
+            --color-primary: #6ba3f5;
+            --color-primary-hover: #8bb8f7;
+            --color-bg: #0f172a;
+            --color-surface: #1e293b;
+            --color-text: #e2e8f0;
+            --color-text-secondary: #cbd5e1;
+            --color-text-muted: #94a3b8;
+            --color-text-faint: #64748b;
+            --color-heading: #f1f5f9;
+            --color-border: #334155;
+            --color-border-light: #293548;
+            --color-news-bg: #16202e;
+            --color-avatar-bg: #334155;
+            --color-tag-project: #22c55e;
+            --color-scrollbar-track: #1e293b;
+            --color-scrollbar-thumb: #475569;
+            --color-scrollbar-thumb-hover: #64748b;
+            --glow-color: rgba(107, 163, 245, 0.12);
+            --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.35);
+            --shadow-hover: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+
+        /* ============================================
+                   Reset & Base
+                ============================================ */
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background: var(--color-bg);
+            color: var(--color-text);
+            line-height: 1.65;
+            padding: 2rem 1.5rem;
+            min-height: 100vh;
+            transition: background-color var(--transition-medium), color var(--transition-medium);
+        }
+
+        /* Mouse glow */
+        body::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background: radial-gradient(600px circle at var(--mx, 50%) var(--my, 50%),
+                    var(--glow-color), transparent 60%);
+            z-index: 1;
+            transition: background 0.15s linear;
+        }
+
+        /* ============================================
+                   Layout Container
+                ============================================ */
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: var(--color-surface);
+            border-radius: var(--radius-container);
+            box-shadow: var(--shadow-card);
+            padding: 2rem 2.5rem;
+            position: relative;
+            z-index: 2;
+            transition: background-color var(--transition-medium), box-shadow var(--transition-medium);
+        }
+
+        .container:hover {
+            box-shadow: var(--shadow-hover);
+        }
+
+        /* ============================================
+                   Navigation
+                ============================================ */
+        .navbar {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 1.8rem;
+            font-size: 0.95rem;
+            border-bottom: 1px solid var(--color-border-light);
+            padding-bottom: 0.6rem;
+            margin-bottom: 1.2rem;
+            flex-wrap: wrap;
+            transition: border-color var(--transition-medium);
+        }
+
+        .navbar a {
+            color: var(--color-text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color var(--transition-fast);
+            position: relative;
+            padding-bottom: 2px;
+        }
+
+        .navbar a::after {
+            content: "";
+            position: absolute;
+            bottom: -0.6rem;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--color-primary);
+            transition: width var(--transition-fast);
+        }
+
+        .navbar a:hover,
+        .navbar a:focus-visible {
+            color: var(--color-primary);
+        }
+
+        .navbar a:hover::after,
+        .navbar a:focus-visible::after,
+        .navbar a.active::after {
+            width: 100%;
+        }
+
+        .navbar a.active {
+            color: var(--color-primary);
+        }
+
+        /* ---- Theme Toggle Button ---- */
+        .theme-toggle {
+            margin-right: auto;
+            background: transparent;
+            border: 1px solid var(--color-border);
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            cursor: pointer;
+            color: var(--color-text-secondary);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            padding: 0;
+            flex-shrink: 0;
+            transition: color var(--transition-fast), border-color var(--transition-fast),
+                background-color var(--transition-fast), transform var(--transition-fast);
+        }
+
+        .theme-toggle:hover {
+            color: var(--color-primary);
+            border-color: var(--color-primary);
+            background: var(--color-bg);
+            transform: rotate(15deg);
+        }
+
+        .theme-toggle:focus-visible {
+            outline: 2px solid var(--color-primary);
+            outline-offset: 2px;
+        }
+
+        .theme-toggle .fa-sun {
+            display: none;
+        }
+
+        [data-theme="dark"] .theme-toggle .fa-moon {
+            display: none;
+        }
+
+        [data-theme="dark"] .theme-toggle .fa-sun {
+            display: inline-block;
+        }
+
+        /* ============================================
+                   Header  (Yize Li 左 · 联系方式 右)
+                ============================================ */
+        .header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.2rem;
+            gap: 1.2rem;
+        }
+
+        /* 左侧：头像 + 名字 */
+        .header-center {
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            text-align: left;
+            flex-shrink: 0;
+        }
+
+        /* 右侧：联系方式（垂直堆叠，靠右对齐） */
+        .header-left {
+            font-size: 0.92rem;
+            color: var(--color-text-secondary);
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+            min-width: 0;
+            align-items: flex-end;
+            text-align: right;
+        }
+
+        .header-left i {
+            width: 1.3rem;
+            text-align: center;
+            color: var(--color-text-muted);
+            flex-shrink: 0;
+        }
+
+        .header-left a {
+            color: var(--color-primary);
+            text-decoration: none;
+            transition: color var(--transition-fast), text-decoration var(--transition-fast);
+            word-break: break-all;
+        }
+
+        .header-left a:hover {
+            color: var(--color-primary-hover);
+            text-decoration: underline;
+        }
+
+        .avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 80%;
+            object-fit: cover;
+            background: var(--color-avatar-bg);
+            flex-shrink: 0;
+            border: 3px solid var(--color-surface);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+            transition: transform var(--transition-fast), box-shadow var(--transition-fast),
+                background-color var(--transition-medium), border-color var(--transition-medium);
+        }
+
+        .avatar:hover {
+            transform: scale(1.03);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .name-title h1 {
+            font-size: 2.6rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            color: var(--color-heading);
+            line-height: 1.2;
+            margin: 0;
+            transition: color var(--transition-medium);
+        }
+
+        .name-title .subtitle {
+            font-size: 1rem;
+            color: var(--color-text-muted);
+            margin-top: 0.2rem;
+        }
+
+        /* ============================================
+                   Section Titles
+                ============================================ */
+        .section-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--color-heading);
+            border-bottom: 2px solid var(--color-border-light);
+            padding-bottom: 0.35rem;
+            margin: 1.4rem 0 0.6rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: color var(--transition-medium), border-color var(--transition-medium);
+        }
+
+        .section-title::before {
+            content: "";
+            width: 4px;
+            height: 1.2rem;
+            background: var(--color-primary);
+            border-radius: 2px;
+            display: inline-block;
+        }
+
+        .subsection-title {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: var(--color-heading);
+            margin: 1rem 0 0.5rem 0;
+            transition: color var(--transition-medium);
+        }
+
+        .subsection-title--spaced {
+            margin-top: 1.2rem;
+        }
+
+        /* ============================================
+                   Links (generic)
+                ============================================ */
+        .text-link {
+            color: var(--color-primary);
+            text-decoration: none;
+            transition: color var(--transition-fast);
+        }
+
+        .text-link:hover,
+        .text-link:focus-visible {
+            color: var(--color-primary-hover);
+            text-decoration: underline;
+        }
+
+        /* ============================================
+                   About & Research Text
+                ============================================ */
+        .about-text p,
+        .research-text p {
+            margin-bottom: 0.6rem;
+        }
+
+        .research-text ul {
+            list-style: none;
+            padding-left: 0.4rem;
+        }
+
+        .research-text ul li {
+            position: relative;
+            padding-left: 1.4rem;
+            margin-bottom: 0.35rem;
+        }
+
+        .research-text ul li::before {
+            content: "•";
+            color: var(--color-primary);
+            position: absolute;
+            left: 0.2rem;
+            font-weight: 700;
+            font-size: 1.1em;
+        }
+
+        /* ============================================
+                   News (Scrollable)
+                ============================================ */
+        .news-container {
+            max-height: 220px;
+            overflow-y: auto;
+            padding: 0.8rem 1rem;
+            border: 1px solid var(--color-border-light);
+            border-radius: var(--radius-small);
+            background: var(--color-news-bg);
+            scrollbar-width: thin;
+            scrollbar-color: var(--color-scrollbar-thumb) var(--color-scrollbar-track);
+            transition: background-color var(--transition-medium), border-color var(--transition-medium);
+        }
+
+        .news-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .news-container::-webkit-scrollbar-track {
+            background: var(--color-scrollbar-track);
+            border-radius: var(--radius-small);
+        }
+
+        .news-container::-webkit-scrollbar-thumb {
+            background: var(--color-scrollbar-thumb);
+            border-radius: var(--radius-small);
+        }
+
+        .news-container::-webkit-scrollbar-thumb:hover {
+            background: var(--color-scrollbar-thumb-hover);
+        }
+
+        .news-item {
+            padding: 0.45rem 0;
+            border-bottom: 1px solid var(--color-border-light);
+            display: flex;
+            align-items: baseline;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+            transition: border-color var(--transition-medium);
+        }
+
+        .news-item:last-child {
+            border-bottom: none;
+        }
+
+        .news-date {
+            font-weight: 900;
+            color: var(--color-heading);
+            white-space: nowrap;
+            min-width: 5.5rem;
+            font-variant-numeric: tabular-nums;
+            font-size: 0.9rem;
+        }
+
+        .news-tag {
+            font-weight: 600;
+            padding: 0.15rem 0.6rem;
+            border-radius: var(--radius-pill);
+            font-size: 0.78rem;
+            color: #fff;
+            white-space: nowrap;
+            letter-spacing: 0.02em;
+        }
+
+        .tag-paper {
+            background-color: var(--color-tag-paper);
+        }
+
+        .tag-career {
+            background-color: var(--color-tag-career);
+        }
+
+        .tag-project {
+            background-color: var(--color-tag-project);
+        }
+
+        .news-text {
+            color: var(--color-text);
+            font-size: 0.95rem;
+            transition: color var(--transition-medium);
+        }
+
+        .news-hint {
+            font-size: 0.85rem;
+            color: var(--color-text-faint);
+            margin-top: 0.4rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        /* ============================================
+                   Education & Experience Entries
+                ============================================ */
+        .entry {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: baseline;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--color-border-light);
+            gap: 0.25rem;
+            transition: border-color var(--transition-medium);
+        }
+
+        .entry:last-child {
+            border-bottom: none;
+        }
+
+        .entry .left {
+            font-weight: 500;
+            color: var(--color-heading);
+            transition: color var(--transition-medium);
+        }
+
+        .entry .right {
+            color: var(--color-text-muted);
+            font-size: 0.9rem;
+            white-space: nowrap;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .entry-detail {
+            color: var(--color-text-secondary);
+            font-weight: 400;
+            font-size: 0.93rem;
+            padding-left: 1.5rem;
+        }
+
+        .entry-detail--flush {
+            padding-left: 0;
+            border-bottom: none;
+            padding-top: 0.15rem;
+            padding-bottom: 0.3rem;
+        }
+
+        .entry--extra-top {
+            margin-top: 0.3rem;
+        }
+
+        /* ============================================
+                   Selected Publications
+                ============================================ */
+        .pub-list {
+            list-style: none;
+            padding-left: 0;
+            counter-reset: pub-counter;
+        }
+
+        .pub-list li {
+            counter-increment: pub-counter;
+            padding-left: 2.4rem;
+            position: relative;
+            margin-bottom: 0.7rem;
+        }
+
+        .pub-list li::before {
+            content: counter(pub-counter) ".";
+            position: absolute;
+            left: 0;
+            font-weight: 600;
+            color: var(--color-primary);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .pub-list .title {
+            font-weight: 500;
+            color: var(--color-heading);
+            transition: color var(--transition-medium);
+        }
+
+        .pub-list .authors {
+            color: var(--color-text-secondary);
+            font-size: 0.95rem;
+            display: block;
+        }
+
+        .pub-list .venue {
+            font-style: italic;
+            color: var(--color-text-muted);
+            font-size: 0.92rem;
+            display: block;
+        }
+
+        .pub-list .links {
+            margin-top: 0.2rem;
+        }
+
+        .pub-list .links a {
+            color: var(--color-primary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            margin-right: 1rem;
+            transition: color var(--transition-fast);
+            display: inline-block;
+        }
+
+        .pub-list .links a:hover {
+            color: var(--color-primary-hover);
+            text-decoration: underline;
+        }
+
+        /* ============================================
+                   Footer
+                ============================================ */
+        .footer {
+            margin-top: 1.6rem;
+            padding-top: 0.9rem;
+            border-top: 1px solid var(--color-border-light);
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--color-text-faint);
+            transition: border-color var(--transition-medium);
+        }
+
+        .footer .fa-heart {
+            color: #e74c3c;
+            animation: heartbeat 1.5s ease-in-out infinite;
+        }
+
+        @keyframes heartbeat {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.2);
+            }
+        }
+
+        .visit-stats {
+            margin-top: 0.5rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+            color: var(--color-text-faint);
+            font-size: 0.8rem;
+        }
+
+        .visit-stats i {
+            margin-right: 0.25rem;
+            color: var(--color-text-muted);
+        }
+
+        .visit-sep {
+            color: var(--color-border);
+        }
+
+        /* ============================================
+                   Scroll progress bar
+                ============================================ */
+        .scroll-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            width: 0%;
+            background: linear-gradient(90deg, var(--color-primary), #6ba3f5);
+            z-index: 1001;
+            transition: width 0.1s linear;
+            pointer-events: none;
+        }
+
+        /* ============================================
+                   Back-to-top button
+                ============================================ */
+        .back-to-top {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            color: var(--color-primary);
+            box-shadow: var(--shadow-card);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: opacity 0.3s, transform 0.3s, visibility 0.3s,
+                background-color 0.2s, color 0.2s, border-color 0.2s;
+            z-index: 999;
+        }
+
+        .back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .back-to-top:hover {
+            background: var(--color-primary);
+            color: #fff;
+            border-color: var(--color-primary);
+        }
+
+        .back-to-top:focus-visible {
+            outline: 2px solid var(--color-primary);
+            outline-offset: 2px;
+        }
+
+        /* ============================================
+                   Reveal-on-scroll
+                ============================================ */
+        .reveal {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ============================================
+                   Toast notification
+                ============================================ */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: #111827;
+            color: #fff;
+            padding: 0.6rem 1rem;
+            border-radius: var(--radius-small);
+            font-size: 0.85rem;
+            opacity: 0;
+            transition: opacity 0.3s, transform 0.3s;
+            z-index: 1000;
+            pointer-events: none;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+        }
+
+        [data-theme="dark"] .toast {
+            background: #e2e8f0;
+            color: #0f172a;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* ============================================
+                   Responsive Design
+                ============================================ */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem 0.8rem;
+            }
+
+            .container {
+                padding: 1.5rem 1.2rem;
+                border-radius: 12px;
+            }
+
+            .header {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+                gap: 0.8rem;
+            }
+
+            /* 移动端：联系方式重新居中 */
+            .header-left {
+                align-items: center;
+                text-align: center;
+            }
+
+            .header-left span {
+                display: flex;
+                align-items: center;
+                gap: 0.4rem;
+                justify-content: center;
+            }
+
+            .header-center {
+                justify-content: center;
+                flex-wrap: wrap;
+                text-align: center;
+                gap: 0.8rem;
+            }
+
+            .header-center .name-title h1 {
+                font-size: 2.1rem;
+            }
+
+            .entry {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.1rem;
+            }
+
+            .entry .right {
+                white-space: normal;
+            }
+
+            .navbar {
+                justify-content: flex-start;
+                gap: 1rem;
+                font-size: 0.9rem;
+            }
+
+            .navbar a::after {
+                bottom: -0.5rem;
+            }
+
+            .avatar {
+                width: 72px;
+                height: 72px;
+            }
+
+            .news-container {
+                max-height: 180px;
+            }
+
+            .news-item {
+                flex-direction: column;
+                gap: 0.2rem;
+                align-items: flex-start;
+            }
+
+            .news-date {
+                min-width: auto;
+            }
+
+            .pub-list li {
+                padding-left: 2rem;
+            }
+
+            .back-to-top {
+                bottom: 1.2rem;
+                right: 1.2rem;
+                width: 42px;
+                height: 42px;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .header-center .name-title h1 {
+                font-size: 1.8rem;
+            }
+
+            .container {
+                padding: 1.2rem 0.9rem;
+            }
+
+            .navbar {
+                gap: 0.7rem;
+                font-size: 0.85rem;
+            }
+        }
+
+        /* ============================================
+                   Accessibility — Reduced Motion
+                ============================================ */
+        @media (prefers-reduced-motion: reduce) {
+            html {
+                scroll-behavior: auto;
+            }
+
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+
+            .footer .fa-heart {
+                animation: none;
+            }
+
+            .avatar:hover {
+                transform: none;
+            }
+
+            .theme-toggle:hover {
+                transform: none;
+            }
+
+            body::after {
+                display: none;
+            }
+
+            .reveal {
+                opacity: 1;
+                transform: none;
+            }
+        }
+
+        /* ============================================
+                   Accessibility — Focus Visible
+                ============================================ */
+        a:focus-visible,
+        .navbar a:focus-visible {
+            outline: 2px solid var(--color-primary);
+            outline-offset: 2px;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Scroll progress bar -->
+    <div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
+
+    <div class="container">
+
+        <!-- ==================== Navigation ==================== -->
+        <nav class="navbar" aria-label="Main navigation">
+            <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle dark mode"
+                title="Toggle dark mode">
+                <i class="fa-solid fa-moon" aria-hidden="true"></i>
+                <i class="fa-solid fa-sun" aria-hidden="true"></i>
+            </button>
+            <a href="#about">About</a>
+            <a href="#research">Research</a>
+            <a href="#news">News</a>
+            <a href="#publications">Publications</a>
+            <a href="#education">Education</a>
+            <a href="#experience">Experience</a>
+            <a href="#service">Service</a>
+        </nav>
+
+        <!-- ==================== Header ==================== -->
+        <header class="header">
+
+            <div class="header-center">
+                <!-- Replace images/avatar.jpg -->
+                <img class="avatar" src="imgs/YizeLi_25.jpg" alt="Portrait of Yize Li" loading="lazy"
+                    onerror="this.style.display='none'">
+                <div class="name-title">
+                    <h1>Yize Li</h1>
+                    <div class="subtitle">Ph.D. Candidate@Northeastern University</div>
+                </div>
+            </div>
+
+            <div class="header-left">
+                <span>
+                    <i class="fa-regular fa-envelope" aria-hidden="true"></i>
+                    <a href="mailto:li.yize@northeastern.edu">li.yize@northeastern.edu</a>
+                </span>
+                <span>
+                    <i class="ai ai-google-scholar" aria-hidden="true"></i>
+                    <a href="https://scholar.google.com/citations?user=_wzQ1EgAAAAJ&hl" target="_blank"
+                        rel="noopener noreferrer">Google Scholar</a>
+                </span>
+                <span>
+                    <i class="fa-brands fa-linkedin" aria-hidden="true"></i>
+                    <a href="https://www.linkedin.com/in/yize-li-bb6112192/" target="_blank"
+                        rel="noopener noreferrer">LinkedIn</a>
+                </span>
+                <span>
+                    <i class="fa-brands fa-twitter" aria-hidden="true"></i>
+                    <a href="https://twitter.com/你的Twitter用户名" target="_blank" rel="noopener noreferrer">Twitter</a>
+                </span>
+            </div>
+
+        </header>
+
+        <!-- ==================== About ==================== -->
+        <section id="about" aria-labelledby="about-title">
+            <h2 class="section-title" id="about-title">About</h2>
+            <div class="about-text">
+                <p>
+                    I am the final-year Ph.D. candidate in Computer Engineering at Northeastern University, advised by
+                    Prof.
+                    <a class="text-link" href="https://xuelin.sites.northeastern.edu/" target="_blank"
+                        rel="noopener noreferrer">Xue (Shelley) Lin</a>.
+                    I focus on generative multimodal machine learning in <strong>audio, vision</strong>, and
+                    <strong>language models</strong>.
+                    I also work closely with Prof.
+                    <a class="text-link" href="https://www.yanzhiwang.com/" target="_blank"
+                        rel="noopener noreferrer">Yanzhi Wang (NEU)</a>, Prof.
+                    <a class="text-link" href="https://lsjxjtu.github.io/" target="_blank"
+                        rel="noopener noreferrer">Sijia Liu (MSU)</a>, Prof.
+                    <a class="text-link" href="https://you.stonybrook.edu/singerresearch/" target="_blank"
+                        rel="noopener noreferrer">Andrew C. Singer (Dean from Stony Brook University)</a> and Prof.
+                    <a class="text-link" href="https://zlkong.github.io/homepage/" target="_blank"
+                        rel="noopener noreferrer">Zhenglun Kong (Miami)</a>.
+                    <br>
+                    <br>
+                    <span style="color: #e74c3c; font-weight: 700;">
+                        I am currently seeking full-time roles as a Machine Learning Engineer, Research Scientist, or
+                        Applied Scientist.
+                        Please feel free to reach out about any opportunities!
+                    </span>
+                </p>
+            </div>
+        </section>
+
+        <!-- ==================== Research ==================== -->
+        <section id="research" aria-labelledby="research-title">
+            <h2 class="section-title" id="research-title">Research</h2>
+            <div class="research-text">
+                <p>
+                    My research interests lie in
+                    <strong><u>scalable</u></strong>, <strong><u>efficient</u></strong>,
+                    <strong><u>trustworthy</u></strong>, and <strong><u>generative multimodal</u></strong>
+                    machine learning, including:
+                </p>
+                <ul>
+                    <li>Reasoning for Multimodal Large Language Models (MLLMs), including Vision-Language and
+                        Audio-Language Models.</li>
+                    <li>Accelerations of Foundation Models such as Diffusion Models, Large Language Models, and
+                        Vision-Language Models.</li>
+                    <li>Emerging Diffusion Large Language Models, Vision-Language Action Models, World Models, World
+                        Action Models, and AI Agent
+                        Systems.</li>
+                    <li>Vision, Audio, and Speech Generative Foundation Models.</li>
+                    <li>Energy-Efficient, Trustworthy and Robust AI Systems.</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- ==================== News ==================== -->
+        <section id="news" aria-labelledby="news-title">
+            <h2 class="section-title" id="news-title">News</h2>
+            <div class="news-container" role="region" aria-label="News feed" tabindex="0">
+                <div class="news-item">
+                    <span class="news-date">08/2026</span>
+                    <span class="news-tag tag-paper">Paper</span>
+                    <span class="news-text">Our paper <strong>MRMAD</strong> is accepted to <strong>EMNLP Findings
+                            2026</strong>.</span>
+                </div>
+                <div class="news-item">
+                    <span class="news-date">07/2026</span>
+                    <span class="news-tag tag-project">Project</span>
+                    <span class="news-text">Our repo <a class="text-link"
+                            href="https://github.com/ZLKong/Awesome-Collection-Token-Reduction" target="_blank"
+                            rel="noopener noreferrer"><strong>Awesome-Collection-Token-Reduction</strong></a> has
+                        received <strong>500+⭐</strong>.</span>
+                </div>
+                <div class="news-item">
+                    <span class="news-date">05/2026</span>
+                    <span class="news-tag tag-paper">Paper</span>
+                    <span class="news-text">New preprint: a survey paper on <a class="text-link"
+                            href="https://arxiv.org/abs/2605.16681" target="_blank"
+                            rel="noopener noreferrer"><strong>Audio Super-Resolution</strong></a>.</span>
+                </div>
+                <div class="news-item">
+                    <span class="news-date">04/2026</span>
+                    <span class="news-tag tag-paper">Paper</span>
+                    <span class="news-text">Our paper <a class="text-link"
+                            href="https://link.springer.com/chapter/10.1007/978-3-032-31452-9_41" target="_blank"
+                            rel="noopener noreferrer"><strong>Diff-StyGS</strong></a> is accepted to <strong>ICPR
+                            2026</strong>.</span>
+                </div>
+                <div class="news-item">
+                    <span class="news-date">08/2025</span>
+                    <span class="news-tag tag-paper">Paper</span>
+                    <span class="news-text">Our paper <a class="text-link"
+                            href="https://link.springer.com/chapter/10.1007/978-981-95-7084-3_18" target="_blank"
+                            rel="noopener noreferrer"><strong>HDCompression</strong></a> is accepted to <strong>PRICAI
+                            2025 as an Oral</strong>.</span>
+                </div>
+                <div class="news-item">
+                    <span class="news-date">05/2025</span>
+                    <span class="news-tag tag-career">Career</span>
+                    <span class="news-text">Start internship at <strong>Bose Corporation</strong> as an <strong>Audio
+                            Research Intern</strong>.</span>
+                </div>
+                <div class="news-item">
+                    <span class="news-date">05/2025</span>
+                    <span class="news-tag tag-paper">Paper</span>
+                    <span class="news-text">New preprint: a position paper on <a class="text-link"
+                            href="https://arxiv.org/abs/2505.18227" target="_blank"
+                            rel="noopener noreferrer"><strong>Token Reduction in Generative Models</strong></a>.</span>
+                </div>
+                <div class="news-item">
+                    <span class="news-date">04/2025</span>
+                    <span class="news-tag tag-paper">Paper</span>
+                    <span class="news-text">Our paper <a class="text-link"
+                            href="https://dl.acm.org/doi/abs/10.24963/ijcai.2025/69" target="_blank"
+                            rel="noopener noreferrer"><strong>FairSMoE</strong></a> is
+                        accepted to <strong>IJCAI 2025</strong>.</span>
+                </div>
+                <div class="news-item">
+                    <span class="news-date">02/2025</span>
+                    <span class="news-tag tag-paper">Paper</span>
+                    <span class="news-text">Our paper <a class="text-link"
+                            href="https://ieeexplore.ieee.org/abstract/document/10888554/" target="_blank"
+                            rel="noopener noreferrer"><strong>Data-Efficient Diffusion Model Training</strong></a> is
+                        accepted to <strong>ICASSP 2025</strong>.</span>
+                </div>
+                <div class="news-item">
+                    <span class="news-date">01/2022</span>
+                    <span class="news-tag tag-paper">Paper</span>
+                    <span class="news-text">Our paper is accepted to <a class="text-link"
+                            href="https://openreview.net/forum?id=gpp7cf0xdfN" target="_blank"
+                            rel="noopener noreferrer"><strong>ICLR 2022</strong></a>.</span>
+                </div>
+            </div>
+            <p class="news-hint">
+                <i class="fa-regular fa-hand-point-down" aria-hidden="true"></i>
+                Scroll down for more news
+            </p>
+        </section>
+
+        <!-- ==================== Selected Publications ==================== -->
+        <section id="publications" aria-labelledby="publications-title">
+            <h2 class="section-title" id="publications-title">Selected Publications</h2>
+
+            <!-- ===== Preprints ===== -->
+            <h3 class="subsection-title">Preprints</h3>
+            <ol class="pub-list">
+                <li>
+                    <span class="title">P2Flow: Phoneme-aware Progressive Flow Matching for Extreme Speech
+                        Super-Resolution.</span>
+                    <span class="authors">Ningyuan Yang*, <strong>Yize Li*</strong>, Pu Zhao, Diego A. Cuji, Kanad
+                        Sarkar, Ryan M. Corey, Xue Lin,
+                        Andrew C. Singer.</span>
+                    <span class="venue">Under Review (<strong>2027</strong>).</span>
+                </li>
+                <li>
+                    <span class="title">A Survey of Advancing Audio Super-Resolution and Bandwidth Extension from
+                        Discriminative to Generative Models.</span>
+                    <span class="authors">Ningyuan Yang*, <strong>Yize Li*</strong>, Diego A Cuji, Ryan M Corey,
+                        Pu Zhao, Xue Lin, Andrew C Singer.</span>
+                    <span class="venue">Under Review (<strong>2026</strong>). <a class="text-link"
+                            style="font-style: normal; white-space: nowrap;" href="https://arxiv.org/abs/2605.16681"
+                            target="_blank" rel="noopener noreferrer"
+                            aria-label="arXiv link for Audio Super-Resolution survey">[arXiv]</a></span>
+                </li>
+                <li>
+                    <span class="title">Token Reduction Should Go Beyond Efficiency in Generative Models--From Vision,
+                        Language to Multimodality.</span>
+                    <span class="authors">Zhenglun Kong*, <strong>Yize Li*</strong>, Fanhu Zeng, Lei Xin, Shvat
+                        Messica, Xue Lin, Pu Zhao, Manolis Kellis, Hao Tang, Marinka Zitnik.</span>
+                    <span class="venue">Under Review (<strong>2026</strong>). <a class="text-link"
+                            style="font-style: normal; white-space: nowrap;" href="https://arxiv.org/abs/2505.18227"
+                            target="_blank" rel="noopener noreferrer"
+                            aria-label="arXiv link for Token Reduction survey">[arXiv]</a></span>
+                </li>
+            </ol>
+
+            <!-- ===== Published ===== -->
+            <h3 class="subsection-title subsection-title--spaced">Published</h3>
+            <ol class="pub-list">
+                <li>
+                    <span class="title">MRMAD: A Multi-Round Multi-Audio Benchmark for Evaluating Acoustic Degradation
+                        Perception in Large Audio-Language Models.</span>
+                    <span class="authors"><strong>Yize Li*</strong>, Ningyuan Yang*, Sile Yin, Sindhuja Thogarrati,
+                        Sung-En Chang, Andrew Singer, Xue Lin, Chuan-Che Huang, Shuo Zhang.</span>
+                    <span class="venue"><span style="color: var(--color-primary);">[EMNLP 2026]</span> Findings of the
+                        Association
+                        for Computational Linguistics: EMNLP 2026. <a class="text-link"
+                            style="font-style: normal; white-space: nowrap;" href="https://arxiv.org/abs/2608.22236"
+                            target="_blank" rel="noopener noreferrer" aria-label="PDF of MRMAD paper">[PDF]</a> <a
+                            class="text-link" style="font-style: normal; white-space: nowrap;"
+                            href="https://github.com/Bose/MRMAD" target="_blank" rel="noopener noreferrer"
+                            aria-label="GitHub repository for MRMAD">[Code]</a></span>
+                </li>
+                <li>
+                    <span class="title">Diff-StyGS: 3D Gaussian Splatting Stylization via Tuning-Free Multi-View Sparse
+                        Diffusion.</span>
+                    <span class="authors"><strong>Yize Li</strong>, Lei Lu, Zhenglun Kong, Yanzhi Wang, Pu Zhao, Xue
+                        Lin.</span>
+                    <span class="venue"><span style="color: var(--color-primary);">[ICPR 2026]</span> International
+                        Conference on
+                        Pattern Recognition. <a class="text-link" style="font-style: normal; white-space: nowrap;"
+                            href="https://link.springer.com/chapter/10.1007/978-3-032-31452-9_41" target="_blank"
+                            rel="noopener noreferrer" aria-label="Springer link for Diff-StyGS paper">[PDF]</a></span>
+                </li>
+                <li>
+                    <span class="title">Pruning then Reweighting: Towards Data-Efficient Training of Diffusion
+                        Models.</span>
+                    <span class="authors"><strong>Yize Li</strong>, Yihua Zhang, Sijia Liu, Xue Lin.</span>
+                    <span class="venue"><span style="color: var(--color-primary);">[ICASSP 2025]</span> IEEE
+                        International Conference
+                        on Acoustics, Speech and Signal Processing. <a class="text-link"
+                            style="font-style: normal; white-space: nowrap;"
+                            href="https://ieeexplore.ieee.org/document/10888554/" target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label="IEEE link for Pruning then Reweighting paper">[PDF]</a></span>
+                </li>
+                <li>
+                    <span class="title">HDCompression: Hybrid-Diffusion Image Compression for Ultra-Low Bitrates.</span>
+                    <span class="authors">Lei Lu*, <strong>Yize Li*</strong>, Yanzhi Wang, Wei Wang, Wei Jiang.</span>
+                    <span class="venue"><span style="color: var(--color-primary);">[PRICAI 2025]</span> Pacific Rim
+                        International
+                        Conference on Artificial Intelligence. <a class="text-link"
+                            style="font-style: normal; white-space: nowrap;"
+                            href="https://link.springer.com/chapter/10.1007/978-981-95-7084-3_18" target="_blank"
+                            rel="noopener noreferrer" aria-label="arXiv link for HDCompression paper">[PDF]</a></span>
+                </li>
+            </ol>
+        </section>
+
+        <!-- ==================== Education ==================== -->
+        <section id="education" aria-labelledby="education-title">
+            <h2 class="section-title" id="education-title">Education</h2>
+            <div class="entry">
+                <span class="left"><strong>Ph.D. in Computer Engineering</strong>, Northeastern University</span>
+                <span class="right">May 2021 – Oct. 2026 (Expected)</span>
+            </div>
+            <div class="entry entry-detail entry-detail--flush">
+                <span>Advisor: Prof. <a class="text-link" href="https://xuelin.sites.northeastern.edu/" target="_blank"
+                        rel="noopener noreferrer">Xue (Shelley) Lin</a> · Boston, MA</span>
+            </div>
+            <div class="entry entry--extra-top">
+                <span class="left"><strong>M.S. in Computer Science</strong>, Northeastern University</span>
+                <span class="right">Sep. 2019 – May 2021</span>
+            </div>
+            <div class="entry entry-detail entry-detail--flush">
+                <span>Advisor: Prof. <a class="text-link" href="https://xuelin.sites.northeastern.edu/" target="_blank"
+                        rel="noopener noreferrer">Xue (Shelley) Lin</a> · Boston, MA</span>
+            </div>
+        </section>
+
+        <!-- ==================== Experience ==================== -->
+        <section id="experience" aria-labelledby="experience-title">
+            <h2 class="section-title" id="experience-title">Experience</h2>
+            <div class="entry">
+                <span class="left"><strong>Audio Research Intern</strong>, Bose Corporation</span>
+                <span class="right">May 2025 – Aug. 2026</span>
+            </div>
+            <div class="entry entry-detail entry-detail--flush">
+                <span>
+                    Mentors:
+                    Dr. <a class="text-link" href="https://scholar.google.com/citations?user=XTEh5vUAAAAJ"
+                        target="_blank" rel="noopener noreferrer">Chuan-Che Huang</a>
+                    and
+                    Dr. <a class="text-link" href="https://zangsir.github.io/" target="_blank"
+                        rel="noopener noreferrer">Shuo Zhang</a> · Framingham, MA
+                </span>
+            </div>
+        </section>
+
+        <!-- ===== Service ===== -->
+        <section id="service">
+            <h2 class="section-title">Service</h2>
+            <div class="service-text">
+                <strong>Conference Reviewer</strong>: AAAI, BMVC, CVPR, ECCV, ICASSP, ICCV, ICLR, ICML, IJCAI, IJCNN,
+                NeurIPS, WACV<br>
+                <strong>Journal &amp; Workshop Reviewer</strong>: IEEE TCAD, IEEE TSP, DCASE 2026, IEEE MLSP 2026
+            </div>
+        </section>
+
+        <!-- ==================== Footer ==================== -->
+        <footer class="footer">
+            <div>© Last update by Yize Li: 2026/09</div>
+
+            <div class="visit-stats">
+                <span id="busuanzi_container_page_pv">
+                    <i class="fa-regular fa-eye" aria-hidden="true"></i>
+                    <span id="busuanzi_value_page_pv">…</span> views
+                </span>
+                <span class="visit-sep" aria-hidden="true">·</span>
+                <span id="busuanzi_container_site_uv">
+                    <i class="fa-solid fa-user-group" aria-hidden="true"></i>
+                    <span id="busuanzi_value_site_uv">…</span> visitors
+                </span>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- Back-to-top button -->
+    <button id="back-to-top" class="back-to-top" type="button" aria-label="Back to top" title="Back to top">
+        <i class="fa-solid fa-arrow-up" aria-hidden="true"></i>
+    </button>
+
+    <!-- Busuanzi counter script -->
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+    <!-- Main scripts -->
+    <script>
+        /* Theme toggle */
+        (function () {
+            var toggle = document.getElementById('theme-toggle');
+            if (!toggle) return;
+
+            toggle.addEventListener('click', function () {
+                var current = document.documentElement.getAttribute('data-theme') || 'light';
+                var next = current === 'dark' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', next);
+                try {
+                    localStorage.setItem('theme', next);
+                } catch (e) { /* ignore */ }
+            });
+
+            if (window.matchMedia) {
+                var mql = window.matchMedia('(prefers-color-scheme: dark)');
+                var handler = function (e) {
+                    try {
+                        if (!localStorage.getItem('theme')) {
+                            document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
+                        }
+                    } catch (err) { /* ignore */ }
+                };
+                if (mql.addEventListener) mql.addEventListener('change', handler);
+                else if (mql.addListener) mql.addListener(handler);
+            }
+        })();
+
+        /* Toast helper */
+        function showToast(msg) {
+            var toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = msg;
+            document.body.appendChild(toast);
+            requestAnimationFrame(function () { toast.classList.add('show'); });
+            setTimeout(function () {
+                toast.classList.remove('show');
+                setTimeout(function () { toast.remove(); }, 350);
+            }, 1800);
+        }
+
+        /* Copy email on click */
+        (function () {
+            document.querySelectorAll('a[href^="mailto:"]').forEach(function (a) {
+                a.addEventListener('click', function (e) {
+                    var email = a.getAttribute('href').replace('mailto:', '').split('?')[0];
+                    if (!navigator.clipboard || !navigator.clipboard.writeText) return;
+                    e.preventDefault();
+                    navigator.clipboard.writeText(email).then(function () {
+                        showToast('Copied: ' + email);
+                    }).catch(function () {
+                        window.location.href = a.getAttribute('href');
+                    });
+                });
+            });
+        })();
+
+        /* Scroll progress + back-to-top */
+        (function () {
+            var progress = document.getElementById('scroll-progress');
+            var backBtn = document.getElementById('back-to-top');
+
+            function onScroll() {
+                var h = document.documentElement;
+                var max = h.scrollHeight - h.clientHeight;
+                var p = max > 0 ? (h.scrollTop / max) * 100 : 0;
+                if (progress) progress.style.width = p + '%';
+                if (backBtn) {
+                    if (h.scrollTop > 400) backBtn.classList.add('visible');
+                    else backBtn.classList.remove('visible');
+                }
+            }
+
+            window.addEventListener('scroll', onScroll, { passive: true });
+            window.addEventListener('resize', onScroll);
+            onScroll();
+
+            if (backBtn) {
+                backBtn.addEventListener('click', function () {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+            }
+        })();
+
+        /* Active section highlight */
+        (function () {
+            var sections = document.querySelectorAll('section[id]');
+            var navLinks = document.querySelectorAll('.navbar a[href^="#"]');
+            if (!sections.length || !navLinks.length) return;
+
+            function setActive(id) {
+                navLinks.forEach(function (a) {
+                    a.classList.toggle('active', a.getAttribute('href') === '#' + id);
+                });
+            }
+
+            if ('IntersectionObserver' in window) {
+                var observer = new IntersectionObserver(function (entries) {
+                    entries.forEach(function (entry) {
+                        if (entry.isIntersecting) setActive(entry.target.id);
+                    });
+                }, { rootMargin: '-40% 0px -55% 0px', threshold: 0 });
+                sections.forEach(function (s) { observer.observe(s); });
+            }
+        })();
+
+        /* Reveal on scroll */
+        (function () {
+            var targets = document.querySelectorAll('section, .header');
+            if (!targets.length) return;
+
+            targets.forEach(function (el) { el.classList.add('reveal'); });
+
+            if (!('IntersectionObserver' in window)) {
+                targets.forEach(function (el) { el.classList.add('visible'); });
+                return;
+            }
+
+            var io = new IntersectionObserver(function (entries) {
+                entries.forEach(function (e) {
+                    if (e.isIntersecting) {
+                        e.target.classList.add('visible');
+                        io.unobserve(e.target);
+                    }
+                });
+            }, { threshold: 0.05 });
+
+            targets.forEach(function (el) { io.observe(el); });
+        })();
+
+        /* Mouse glow */
+        (function () {
+            if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+            var root = document.documentElement;
+            var raf = null, mx = 0, my = 0;
+            document.addEventListener('mousemove', function (e) {
+                mx = e.clientX;
+                my = e.clientY;
+                if (raf) return;
+                raf = requestAnimationFrame(function () {
+                    root.style.setProperty('--mx', mx + 'px');
+                    root.style.setProperty('--my', my + 'px');
+                    raf = null;
+                });
+            }, { passive: true });
+        })();
+    </script>
+
+</body>
+
+</html>

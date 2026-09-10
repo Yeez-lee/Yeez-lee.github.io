@@ -10,17 +10,27 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
 
-    <!-- Theme initialization -->
+    <!-- ============================================
+         Theme initialization (sync, before first paint)
+         - 1) If user has a manual preference → use it
+         - 2) Otherwise → pick by browser local time
+           (later corrected asynchronously by IP-based time)
+        ============================================ -->
     <script>
         (function () {
             try {
                 var saved = localStorage.getItem('theme');
-                var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-                var theme = saved || (prefersDark ? 'dark' : 'light');
-                document.documentElement.setAttribute('data-theme', theme);
-            } catch (e) {
-                document.documentElement.setAttribute('data-theme', 'light');
-            }
+                if (saved === 'dark' || saved === 'light') {
+                    document.documentElement.setAttribute('data-theme', saved);
+                    document.documentElement.setAttribute('data-theme-source', 'manual');
+                    return;
+                }
+            } catch (e) { /* ignore */}
+
+            var hour = new Date().getHours();
+            var theme = (hour >= 6 && hour < 18) ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', theme);
+            document.documentElement.setAttribute('data-theme-source', 'auto');
         })();
     </script>
 
@@ -47,6 +57,8 @@
             --color-tag-paper: #e67e22;
             --color-tag-career: #8e44ad;
             --color-tag-project: #16a34a;
+            --color-tag-presenting: #0e7490;
+            /* Presenting tag color (teal/cyan) */
             --color-scrollbar-track: #f0f0f0;
             --color-scrollbar-thumb: #c1c7cd;
             --color-scrollbar-thumb-hover: #a0a7ae;
@@ -82,6 +94,8 @@
             --color-news-bg: #16202e;
             --color-avatar-bg: #334155;
             --color-tag-project: #22c55e;
+            --color-tag-presenting: #22d3ee;
+            /* Presenting tag color (dark mode) */
             --color-scrollbar-track: #1e293b;
             --color-scrollbar-thumb: #475569;
             --color-scrollbar-thumb-hover: #64748b;
@@ -215,6 +229,7 @@
             font-size: 0.95rem;
             padding: 0;
             flex-shrink: 0;
+            position: relative;
             transition: color var(--transition-fast), border-color var(--transition-fast),
                 background-color var(--transition-fast), transform var(--transition-fast);
         }
@@ -243,8 +258,30 @@
             display: inline-block;
         }
 
+        /* Small dot indicator for auto mode */
+        .theme-toggle::before {
+            content: "";
+            position: absolute;
+            top: -1px;
+            right: -1px;
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: var(--color-tag-presenting);
+            border: 2px solid var(--color-surface);
+            opacity: 0;
+            transform: scale(0.6);
+            transition: opacity var(--transition-fast), transform var(--transition-fast);
+            pointer-events: none;
+        }
+
+        html[data-theme-source="auto"] .theme-toggle::before {
+            opacity: 1;
+            transform: scale(1);
+        }
+
         /* ============================================
-                   Header  (Yize Li 左 · 联系方式 右)
+                   Header  (name on the left · contact on the right)
                 ============================================ */
         .header {
             display: flex;
@@ -255,7 +292,7 @@
             gap: 1.2rem;
         }
 
-        /* 左侧：头像 + 名字 */
+        /* Left: avatar + name */
         .header-center {
             display: flex;
             align-items: center;
@@ -264,7 +301,7 @@
             flex-shrink: 0;
         }
 
-        /* 右侧：联系方式（垂直堆叠，靠右对齐） */
+        /* Right: contact info (vertically stacked, right-aligned) */
         .header-left {
             font-size: 0.92rem;
             color: var(--color-text-secondary);
@@ -442,13 +479,14 @@
             background: var(--color-scrollbar-thumb-hover);
         }
 
+        /* --- Single-row flex layout; text wraps within the remaining space --- */
         .news-item {
             padding: 0.45rem 0;
             border-bottom: 1px solid var(--color-border-light);
             display: flex;
             align-items: baseline;
             gap: 0.6rem;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
             transition: border-color var(--transition-medium);
         }
 
@@ -460,6 +498,7 @@
             font-weight: 900;
             color: var(--color-heading);
             white-space: nowrap;
+            flex: 0 0 auto;
             min-width: 5.5rem;
             font-variant-numeric: tabular-nums;
             font-size: 0.9rem;
@@ -472,6 +511,7 @@
             font-size: 0.78rem;
             color: #fff;
             white-space: nowrap;
+            flex: 0 0 auto;
             letter-spacing: 0.02em;
         }
 
@@ -487,7 +527,22 @@
             background-color: var(--color-tag-project);
         }
 
+        /* Presenting tag */
+        .tag-presenting {
+            background-color: var(--color-tag-presenting);
+        }
+
+        [data-theme="dark"] .tag-presenting {
+            color: #06202a;
+            /* keep contrast on bright cyan in dark mode */
+        }
+
+        /* --- Text takes the remaining width and wraps naturally --- */
         .news-text {
+            flex: 1 1 auto;
+            min-width: 0;
+            overflow-wrap: anywhere;
+            word-break: break-word;
             color: var(--color-text);
             font-size: 0.95rem;
             transition: color var(--transition-medium);
@@ -786,7 +841,7 @@
                 gap: 0.8rem;
             }
 
-            /* 移动端：联系方式重新居中 */
+            /* Mobile: recenter contact info */
             .header-left {
                 align-items: center;
                 text-align: center;
@@ -839,6 +894,7 @@
                 max-height: 180px;
             }
 
+            /* Mobile: date / tag / text stack vertically; text takes the full row */
             .news-item {
                 flex-direction: column;
                 gap: 0.2rem;
@@ -847,6 +903,11 @@
 
             .news-date {
                 min-width: auto;
+            }
+
+            .news-text {
+                flex: 0 0 auto;
+                width: 100%;
             }
 
             .pub-list li {
@@ -1074,6 +1135,13 @@
                             2026</strong>.</span>
                 </div>
                 <div class="news-item">
+                    <span class="news-date">12/2025</span>
+                    <span class="news-tag tag-presenting">Presenting</span>
+                    <span class="news-text">I gave a talk at <strong>Tufts University</strong>. The topic was
+                        &ldquo;<strong>Towards Efficient, Trustworthy and Reasoning Generative
+                            Models</strong>.&rdquo;</span>
+                </div>
+                <div class="news-item">
                     <span class="news-date">08/2025</span>
                     <span class="news-tag tag-paper">Paper</span>
                     <span class="news-text">Our paper <a class="text-link"
@@ -1084,7 +1152,7 @@
                 <div class="news-item">
                     <span class="news-date">05/2025</span>
                     <span class="news-tag tag-career">Career</span>
-                    <span class="news-text">Start internship at <strong>Bose Corporation</strong> as an <strong>Audio
+                    <span class="news-text">Started internship at <strong>Bose Corporation</strong> as an <strong>Audio
                             Research Intern</strong>.</span>
                 </div>
                 <div class="news-item">
@@ -1226,7 +1294,8 @@
                         rel="noopener noreferrer">Xue (Shelley) Lin</a> · Boston, MA</span>
             </div>
             <div class="entry entry--extra-top">
-                <span class="left"><strong>M.S. in Electrical and Computer Engineering</strong>, Northeastern University</span>
+                <span class="left"><strong>M.S. in Electrical and Computer Engineering</strong>, Northeastern
+                    University</span>
                 <span class="right">Sep. 2019 – May 2021</span>
             </div>
             <div class="entry entry-detail entry-detail--flush">
@@ -1293,46 +1362,191 @@
 
     <!-- Main scripts -->
     <script>
-        /* Theme toggle */
-        (function () {
-            var toggle = document.getElementById('theme-toggle');
-            if (!toggle) return;
-
-            toggle.addEventListener('click', function () {
-                var current = document.documentElement.getAttribute('data-theme') || 'light';
-                var next = current === 'dark' ? 'light' : 'dark';
-                document.documentElement.setAttribute('data-theme', next);
-                try {
-                    localStorage.setItem('theme', next);
-                } catch (e) { /* ignore */ }
-            });
-
-            if (window.matchMedia) {
-                var mql = window.matchMedia('(prefers-color-scheme: dark)');
-                var handler = function (e) {
-                    try {
-                        if (!localStorage.getItem('theme')) {
-                            document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
-                        }
-                    } catch (err) { /* ignore */ }
-                };
-                if (mql.addEventListener) mql.addEventListener('change', handler);
-                else if (mql.addListener) mql.addListener(handler);
-            }
-        })();
-
-        /* Toast helper */
+        /* Toast helper (function declaration — hoisted, usable above its definition) */
         function showToast(msg) {
             var toast = document.createElement('div');
             toast.className = 'toast';
             toast.textContent = msg;
             document.body.appendChild(toast);
-            requestAnimationFrame(function () { toast.classList.add('show'); });
+            requestAnimationFrame(function () {toast.classList.add('show');});
             setTimeout(function () {
                 toast.classList.remove('show');
-                setTimeout(function () { toast.remove(); }, 350);
-            }, 1800);
+                setTimeout(function () {toast.remove();}, 350);
+            }, 2000);
         }
+
+        /* ============================================================
+           Theme system
+           - Manual choice  → saved in localStorage, always wins
+           - Otherwise      → auto: pick by IP-based local time
+                              (fallback: browser local time)
+           ============================================================ */
+        (function () {
+            var toggle = document.getElementById('theme-toggle');
+            if (!toggle) return;
+
+            var DAY_START = 6;   // 06:00 → light
+            var DAY_END = 18;    // 18:00 → dark
+
+            /* ---------- helpers ---------- */
+
+            function applyTheme(theme, source) {
+                document.documentElement.setAttribute('data-theme', theme);
+                document.documentElement.setAttribute('data-theme-source', source || 'auto');
+                updateToggleTitle();
+            }
+
+            function themeFromHour(hour) {
+                return (hour >= DAY_START && hour < DAY_END) ? 'light' : 'dark';
+            }
+
+            function browserHour() {
+                return new Date().getHours();
+            }
+
+            function getSaved() {
+                try {return localStorage.getItem('theme');} catch (e) {return null;}
+            }
+
+            function saveTheme(theme) {
+                try {localStorage.setItem('theme', theme);} catch (e) { /* ignore */}
+            }
+
+            function clearSaved() {
+                try {localStorage.removeItem('theme');} catch (e) { /* ignore */}
+            }
+
+            function updateToggleTitle() {
+                var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+                var source = document.documentElement.getAttribute('data-theme-source') || 'auto';
+                var label = isDark ? 'Switch to light mode' : 'Switch to dark mode';
+                if (source === 'auto') {
+                    label += ' · currently auto (based on your local time). Double-click to reset to auto.';
+                } else {
+                    label += ' · currently manual. Double-click to reset to auto.';
+                }
+                toggle.title = label;
+                toggle.setAttribute('aria-label', label);
+            }
+
+            /* ---------- IP-based local time ---------- */
+
+            function fetchIpTime() {
+                var endpoints = [
+                    {
+                        // worldtimeapi.org returns a "datetime" string like
+                        // "2024-05-14T12:34:56.789-04:00" — the hour part is local time.
+                        url: 'https://worldtimeapi.org/api/ip',
+                        parse: function (d) {
+                            if (d && typeof d.datetime === 'string') {
+                                var m = d.datetime.match(/T(\d{2}):/);
+                                if (m) return parseInt(m[1], 10);
+                            }
+                            return null;
+                        }
+                    },
+                    {
+                        // ipapi.co returns an IANA timezone name — derive hour via Intl.
+                        url: 'https://ipapi.co/json/',
+                        parse: function (d) {
+                            if (d && typeof d.timezone === 'string') {
+                                try {
+                                    var fmt = new Intl.DateTimeFormat('en-GB', {
+                                        timeZone: d.timezone,
+                                        hour: '2-digit',
+                                        hour12: false
+                                    });
+                                    var n = parseInt(fmt.format(new Date()), 10);
+                                    return isNaN(n) ? null : n;
+                                } catch (e) {
+                                    return null;
+                                }
+                            }
+                            return null;
+                        }
+                    }
+                ];
+
+                function tryOne(i) {
+                    return new Promise(function (resolve) {
+                        if (i >= endpoints.length) return resolve(null);
+                        var ep = endpoints[i];
+                        var controller = ('AbortController' in window) ? new AbortController() : null;
+                        var timer = setTimeout(function () {
+                            if (controller) controller.abort();
+                        }, 4000);
+
+                        fetch(ep.url, controller ? {signal: controller.signal} : {})
+                            .then(function (r) {return r.json();})
+                            .then(function (d) {
+                                clearTimeout(timer);
+                                var hour = ep.parse(d);
+                                if (hour !== null && !isNaN(hour)) resolve(hour);
+                                else resolve(tryOne(i + 1));
+                            })
+                            .catch(function () {
+                                clearTimeout(timer);
+                                resolve(tryOne(i + 1));
+                            });
+                    });
+                }
+
+                return tryOne(0);
+            }
+
+            /* Re-evaluate auto theme (browser time immediately, IP time when it arrives) */
+            function refreshAutoTheme() {
+                applyTheme(themeFromHour(browserHour()), 'auto');
+                fetchIpTime().then(function (hour) {
+                    if (hour !== null && hour !== undefined && !isNaN(hour)) {
+                        applyTheme(themeFromHour(hour), 'auto');
+                    }
+                });
+            }
+
+            /* ---------- user interactions ---------- */
+
+            /* Single click → manual toggle (persisted) */
+            toggle.addEventListener('click', function () {
+                var current = document.documentElement.getAttribute('data-theme') || 'light';
+                var next = current === 'dark' ? 'light' : 'dark';
+                applyTheme(next, 'manual');
+                saveTheme(next);
+                showToast(next === 'dark' ? 'Dark mode (manual)' : 'Light mode (manual)');
+            });
+
+            /* Double click → clear manual choice & return to auto */
+            toggle.addEventListener('dblclick', function () {
+                clearSaved();
+                refreshAutoTheme();
+                showToast('Theme set to auto (based on your local time)');
+            });
+
+            /* ---------- initialisation ---------- */
+
+            // The <head> script already applied an initial theme synchronously:
+            //   - manual preference if saved, otherwise browser-time auto.
+            // Here we just refine it with IP-based time when in auto mode.
+            if (!getSaved()) {
+                fetchIpTime().then(function (hour) {
+                    if (hour !== null && hour !== undefined && !isNaN(hour)) {
+                        applyTheme(themeFromHour(hour), 'auto');
+                    } else {
+                        updateToggleTitle();
+                    }
+                });
+            } else {
+                updateToggleTitle();
+            }
+
+            /* Optional: re-evaluate the auto theme every 10 minutes so it
+               switches naturally at the day/night boundary. */
+            setInterval(function () {
+                if (!getSaved()) {
+                    applyTheme(themeFromHour(browserHour()), 'auto');
+                }
+            }, 10 * 60 * 1000);
+        })();
 
         /* Copy email on click */
         (function () {
@@ -1366,13 +1580,13 @@
                 }
             }
 
-            window.addEventListener('scroll', onScroll, { passive: true });
+            window.addEventListener('scroll', onScroll, {passive: true});
             window.addEventListener('resize', onScroll);
             onScroll();
 
             if (backBtn) {
                 backBtn.addEventListener('click', function () {
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    window.scrollTo({top: 0, behavior: 'smooth'});
                 });
             }
         })();
@@ -1394,8 +1608,8 @@
                     entries.forEach(function (entry) {
                         if (entry.isIntersecting) setActive(entry.target.id);
                     });
-                }, { rootMargin: '-40% 0px -55% 0px', threshold: 0 });
-                sections.forEach(function (s) { observer.observe(s); });
+                }, {rootMargin: '-40% 0px -55% 0px', threshold: 0});
+                sections.forEach(function (s) {observer.observe(s);});
             }
         })();
 
@@ -1404,10 +1618,10 @@
             var targets = document.querySelectorAll('section, .header');
             if (!targets.length) return;
 
-            targets.forEach(function (el) { el.classList.add('reveal'); });
+            targets.forEach(function (el) {el.classList.add('reveal');});
 
             if (!('IntersectionObserver' in window)) {
-                targets.forEach(function (el) { el.classList.add('visible'); });
+                targets.forEach(function (el) {el.classList.add('visible');});
                 return;
             }
 
@@ -1418,9 +1632,9 @@
                         io.unobserve(e.target);
                     }
                 });
-            }, { threshold: 0.05 });
+            }, {threshold: 0.05});
 
-            targets.forEach(function (el) { io.observe(el); });
+            targets.forEach(function (el) {io.observe(el);});
         })();
 
         /* Mouse glow */
@@ -1438,7 +1652,7 @@
                     root.style.setProperty('--my', my + 'px');
                     raf = null;
                 });
-            }, { passive: true });
+            }, {passive: true});
         })();
     </script>
 

@@ -698,26 +698,6 @@
             }
         }
 
-        .visit-stats {
-            margin-top: 0.5rem;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 0.6rem;
-            flex-wrap: wrap;
-            color: var(--color-text-faint);
-            font-size: 0.8rem;
-        }
-
-        .visit-stats i {
-            margin-right: 0.25rem;
-            color: var(--color-text-muted);
-        }
-
-        .visit-sep {
-            color: var(--color-border);
-        }
-
         /* ============================================
                    Visitor world map
                 ============================================ */
@@ -1474,18 +1454,6 @@
         <footer class="footer">
             <div>© Last update by Yize Li: 2026/09</div>
 
-            <div class="visit-stats">
-                <span id="busuanzi_container_page_pv">
-                    <i class="fa-regular fa-eye" aria-hidden="true"></i>
-                    <span id="busuanzi_value_page_pv">…</span> views
-                </span>
-                <span class="visit-sep" aria-hidden="true">·</span>
-                <span id="busuanzi_container_site_uv">
-                    <i class="fa-solid fa-user-group" aria-hidden="true"></i>
-                    <span id="busuanzi_value_site_uv">…</span> visitors
-                </span>
-            </div>
-
             <!-- ===== Visitor world map — all visitors ===== -->
             <div class="visitor-map-wrap">
                 <div class="visitor-map-head">
@@ -1509,9 +1477,6 @@
     <button id="back-to-top" class="back-to-top" type="button" aria-label="Back to top" title="Back to top">
         <i class="fa-solid fa-arrow-up" aria-hidden="true"></i>
     </button>
-
-    <!-- Busuanzi counter script -->
-    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 
     <!-- Main scripts -->
     <script>
@@ -2235,10 +2200,11 @@
                     (placeCount ? ' · ' + placeCount + ' location' + (placeCount === 1 ? '' : 's') : '') +
                     '</span>';
 
-                if (!backendEnabled) {
-                    html += '<span class="visitor-map-note">' +
-                        '</span>';
-                }
+                // if (!backendEnabled) {
+                //     html += '<span class="visitor-map-note">' +
+                //         'Connect a Supabase backend in CONFIG to display every visitor' +
+                //         '</span>';
+                // }
 
                 legendEl.innerHTML = html;
             }

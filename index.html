@@ -719,6 +719,74 @@
         }
 
         /* ============================================
+                   Visitor world map
+                ============================================ */
+        .visitor-map-wrap {
+            margin-top: 1rem;
+            padding: 0.7rem 0.8rem 0.35rem;
+            border: 1px solid var(--color-border-light);
+            border-radius: var(--radius-small);
+            background: var(--color-news-bg);
+            text-align: left;
+            transition: background-color var(--transition-medium), border-color var(--transition-medium);
+        }
+
+        .visitor-map-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+            font-size: 0.8rem;
+            margin-bottom: 0.35rem;
+        }
+
+        .visitor-map-head .vm-title {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-weight: 600;
+            color: var(--color-text-secondary);
+        }
+
+        .visitor-map-head .vm-title i {
+            color: var(--color-primary);
+        }
+
+        #visitor-location {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            color: var(--color-text-muted);
+            font-size: 0.78rem;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        #visitor-location i {
+            color: var(--color-primary);
+        }
+
+        #visitor-map {
+            width: 100%;
+            height: 250px;
+        }
+
+        .visitor-map-fallback {
+            height: 250px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--color-text-faint);
+            padding: 1rem;
+        }
+
+        /* ============================================
                    Scroll progress bar
                 ============================================ */
         .scroll-progress {
@@ -920,6 +988,17 @@
                 width: 42px;
                 height: 42px;
             }
+
+            /* Visitor map: shorter on mobile */
+            #visitor-map,
+            .visitor-map-fallback {
+                height: 185px;
+            }
+
+            .visitor-map-head {
+                justify-content: center;
+                text-align: center;
+            }
         }
 
         @media (max-width: 420px) {
@@ -934,6 +1013,11 @@
             .navbar {
                 gap: 0.7rem;
                 font-size: 0.85rem;
+            }
+
+            #visitor-map,
+            .visitor-map-fallback {
+                height: 155px;
             }
         }
 
@@ -1348,6 +1432,22 @@
                     <span id="busuanzi_value_site_uv">…</span> visitors
                 </span>
             </div>
+
+            <!-- ===== Visitor world map ===== -->
+            <div class="visitor-map-wrap">
+                <div class="visitor-map-head">
+                    <span class="vm-title">
+                        <i class="fa-solid fa-earth-americas" aria-hidden="true"></i>
+                        Visitors around the world
+                    </span>
+                    <span id="visitor-location">
+                        <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+                        Locating…
+                    </span>
+                </div>
+                <div id="visitor-map" role="img" aria-label="World map showing where the current visitor is located">
+                </div>
+            </div>
         </footer>
 
     </div>
@@ -1653,6 +1753,260 @@
                     raf = null;
                 });
             }, {passive: true});
+        })();
+
+        /* ============================================================
+           Visitor world map
+           - Loads ECharts + a world GeoJSON from CDN (no API key)
+           - Resolves the visitor's approximate location by IP
+             (ipapi.co → ipwho.is → geojs.io fallbacks)
+           - Renders a pulsing marker on the world map
+           - Re-themes automatically when light/dark mode changes
+           ============================================================ */
+        (function () {
+            var mapEl = document.getElementById('visitor-map');
+            if (!mapEl) return;
+
+            var locEl = document.getElementById('visitor-location');
+
+            var ECHARTS_URL = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js';
+            var WORLD_URL = 'https://cdn.jsdelivr.net/npm/echarts@4.9.0/map/json/world.json';
+
+            var chart = null;
+            var visitor = null;
+            var mapReady = false;
+
+            /* ---------------- helpers ---------------- */
+
+            function loadScript(src) {
+                return new Promise(function (resolve, reject) {
+                    var s = document.createElement('script');
+                    s.src = src;
+                    s.async = true;
+                    s.onload = resolve;
+                    s.onerror = function () {reject(new Error('Failed to load ' + src));};
+                    document.head.appendChild(s);
+                });
+            }
+
+            function loadJSON(url) {
+                return fetch(url).then(function (r) {
+                    if (!r.ok) throw new Error('HTTP ' + r.status);
+                    return r.json();
+                });
+            }
+
+            function toNum(v) {
+                var n = parseFloat(v);
+                return isFinite(n) ? n : null;
+            }
+
+            function escapeHtml(s) {
+                return String(s).replace(/[&<>"']/g, function (c) {
+                    return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c];
+                });
+            }
+
+            /* ---------------- theme tokens ---------------- */
+
+            function themeTokens() {
+                var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+                return {
+                    land: dark ? '#1c2b42' : '#e9eef6',
+                    border: dark ? '#3a4a63' : '#ccd7e6',
+                    hover: dark ? '#273a55' : '#dbe6f6',
+                    point: dark ? '#22d3ee' : '#1a73e8',
+                    text: dark ? '#cbd5e1' : '#374151',
+                    tooltipBg: dark ? 'rgba(15,23,42,0.96)' : 'rgba(255,255,255,0.98)',
+                    tooltipBorder: dark ? '#334155' : '#e5e7eb',
+                    tooltipText: dark ? '#e2e8f0' : '#1f2937'
+                };
+            }
+
+            /* ---------------- chart option ---------------- */
+
+            function buildOption() {
+                var t = themeTokens();
+                var series = [];
+
+                if (visitor) {
+                    series.push({
+                        type: 'effectScatter',
+                        coordinateSystem: 'geo',
+                        geoIndex: 0,
+                        data: [{name: visitor.label, value: [visitor.lon, visitor.lat]}],
+                        symbolSize: 9,
+                        showEffectOn: 'render',
+                        rippleEffect: {brushType: 'stroke', scale: 3.2, period: 4},
+                        itemStyle: {color: t.point, shadowBlur: 12, shadowColor: t.point},
+                        label: {
+                            show: true,
+                            position: 'right',
+                            offset: [6, 0],
+                            formatter: '{b}',
+                            color: t.text,
+                            fontSize: 11,
+                            fontWeight: 600
+                        },
+                        emphasis: {scale: 1.4},
+                        zlevel: 2
+                    });
+                }
+
+                return {
+                    backgroundColor: 'transparent',
+                    animationDuration: 900,
+                    tooltip: {
+                        show: !!visitor,
+                        trigger: 'item',
+                        backgroundColor: t.tooltipBg,
+                        borderColor: t.tooltipBorder,
+                        borderWidth: 1,
+                        padding: [6, 10],
+                        textStyle: {color: t.tooltipText, fontSize: 12},
+                        formatter: function (p) {
+                            if (p.data && p.data.name) return p.data.name;
+                            return p.name || '';
+                        }
+                    },
+                    geo: {
+                        map: 'world',
+                        roam: false,
+                        zoom: 1.15,
+                        center: [0, 12],
+                        itemStyle: {
+                            areaColor: t.land,
+                            borderColor: t.border,
+                            borderWidth: 0.6
+                        },
+                        emphasis: {
+                            itemStyle: {areaColor: t.hover},
+                            label: {show: false}
+                        },
+                        select: {disabled: true}
+                    },
+                    series: series
+                };
+            }
+
+            function render() {
+                if (!mapReady || !chart) return;
+                chart.setOption(buildOption(), true);
+            }
+
+            /* ---------------- geolocation ---------------- */
+
+            function fetchVisitor() {
+                var sources = [
+                    function () {
+                        return fetch('https://ipapi.co/json/').then(function (r) {return r.json();})
+                            .then(function (d) {
+                                if (!d || d.error) throw new Error('ipapi error');
+                                var lat = toNum(d.latitude), lon = toNum(d.longitude);
+                                if (lat === null || lon === null) throw new Error('no coords');
+                                return {
+                                    lat: lat, lon: lon,
+                                    city: d.city, region: d.region,
+                                    country: d.country_name || d.country
+                                };
+                            });
+                    },
+                    function () {
+                        return fetch('https://ipwho.is/').then(function (r) {return r.json();})
+                            .then(function (d) {
+                                if (!d || d.success === false) throw new Error('ipwho error');
+                                var lat = toNum(d.latitude), lon = toNum(d.longitude);
+                                if (lat === null || lon === null) throw new Error('no coords');
+                                return {
+                                    lat: lat, lon: lon,
+                                    city: d.city, region: d.region,
+                                    country: d.country
+                                };
+                            });
+                    },
+                    function () {
+                        return fetch('https://get.geojs.io/v1/ip/geo.json').then(function (r) {return r.json();})
+                            .then(function (d) {
+                                var lat = toNum(d && d.latitude), lon = toNum(d && d.longitude);
+                                if (lat === null || lon === null) throw new Error('no coords');
+                                return {
+                                    lat: lat, lon: lon,
+                                    city: d.city, region: d.region,
+                                    country: d.country
+                                };
+                            });
+                    }
+                ];
+
+                var i = 0;
+                function next() {
+                    if (i >= sources.length) return Promise.reject(new Error('all geolocation sources failed'));
+                    return sources[i++]().catch(next);
+                }
+                return next();
+            }
+
+            /* ---------------- bootstrap ---------------- */
+
+            Promise.all([loadScript(ECHARTS_URL), loadJSON(WORLD_URL)])
+                .then(function (res) {
+                    var geoJson = res[1];
+                    if (!window.echarts) throw new Error('ECharts unavailable');
+                    window.echarts.registerMap('world', geoJson);
+                    chart = window.echarts.init(mapEl);
+                    mapReady = true;
+                    render();
+                })
+                .catch(function () {
+                    mapEl.innerHTML =
+                        '<div class="visitor-map-fallback">' +
+                        '<i class="fa-solid fa-globe" aria-hidden="true"></i>' +
+                        ' Map unavailable' +
+                        '</div>';
+                    if (locEl) locEl.innerHTML = '';
+                });
+
+            fetchVisitor()
+                .then(function (v) {
+                    var place = '';
+                    if (v.city) place = v.city + (v.country ? ', ' + v.country : '');
+                    else if (v.region) place = v.region + (v.country ? ', ' + v.country : '');
+                    else place = v.country || 'Your location';
+
+                    visitor = {lat: v.lat, lon: v.lon, label: place};
+
+                    if (locEl) {
+                        locEl.innerHTML =
+                            '<i class="fa-solid fa-location-dot" aria-hidden="true"></i> ' +
+                            escapeHtml(place);
+                    }
+                    render();
+                })
+                .catch(function () {
+                    if (locEl) {
+                        locEl.innerHTML =
+                            '<i class="fa-solid fa-location-dot" aria-hidden="true"></i> Location unavailable';
+                    }
+                });
+
+            /* ---------------- reactions ---------------- */
+
+            /* Re-render when the light/dark theme flips */
+            if ('MutationObserver' in window) {
+                var mo = new MutationObserver(function () {render();});
+                mo.observe(document.documentElement, {
+                    attributes: true,
+                    attributeFilter: ['data-theme']
+                });
+            }
+
+            /* Keep the canvas sized to its container */
+            var resizeTimer = null;
+            window.addEventListener('resize', function () {
+                if (!chart) return;
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(function () {chart.resize();}, 150);
+            });
         })();
     </script>
 

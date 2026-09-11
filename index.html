@@ -786,6 +786,59 @@
             padding: 1rem;
         }
 
+        /* ---- Legend under the map ---- */
+        .visitor-map-legend {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.9rem;
+            flex-wrap: wrap;
+            font-size: 0.75rem;
+            color: var(--color-text-muted);
+            padding: 0.3rem 0 0.45rem;
+            min-height: 1.4rem;
+        }
+
+        .visitor-map-legend .legend-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .visitor-map-legend .legend-item i {
+            color: var(--color-text-muted);
+        }
+
+        .visitor-map-legend .legend-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            display: inline-block;
+            flex-shrink: 0;
+        }
+
+        .legend-dot--self {
+            background: #e67e22;
+            box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.22);
+        }
+
+        .legend-dot--other {
+            background: #1a73e8;
+            box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.18);
+        }
+
+        [data-theme="dark"] .legend-dot--other {
+            background: #6ba3f5;
+            box-shadow: 0 0 0 3px rgba(107, 163, 245, 0.2);
+        }
+
+        .visitor-map-note {
+            flex-basis: 100%;
+            text-align: center;
+            font-size: 0.72rem;
+            color: var(--color-text-faint);
+        }
+
         /* ============================================
                    Scroll progress bar
                 ============================================ */
@@ -1433,20 +1486,20 @@
                 </span>
             </div>
 
-            <!-- ===== Visitor world map ===== -->
+            <!-- ===== Visitor world map — all visitors ===== -->
             <div class="visitor-map-wrap">
                 <div class="visitor-map-head">
                     <span class="vm-title">
                         <i class="fa-solid fa-earth-americas" aria-hidden="true"></i>
-                        Visitors around the world
+                        Visitor locations around the world
                     </span>
                     <span id="visitor-location">
                         <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
                         Locating…
                     </span>
                 </div>
-                <div id="visitor-map" role="img" aria-label="World map showing where the current visitor is located">
-                </div>
+                <div id="visitor-map" role="img" aria-label="World map showing where all visitors are located"></div>
+                <div class="visitor-map-legend" id="visitor-map-legend"></div>
             </div>
         </footer>
 
@@ -1756,27 +1809,80 @@
         })();
 
         /* ============================================================
-           Visitor world map
-           - Loads ECharts + a world GeoJSON from CDN (no API key)
-           - Resolves the visitor's approximate location by IP
-             (ipapi.co → ipwho.is → geojs.io fallbacks)
-           - Renders a pulsing marker on the world map
-           - Re-themes automatically when light/dark mode changes
+           Visitor world map — "ALL VISITORS" edition
+           ------------------------------------------------------------
+           Every stored visitor is drawn on the map; the current visitor
+           is highlighted with a pulsing marker + label.
+
+           BACKEND: Supabase (free tier, no server code needed).
+
+           ONE-TIME SETUP
+           1. Create a free project at https://supabase.com
+           2. Open "SQL Editor" and run the following:
+
+              create table if not exists public.visitor_locations (
+                visitor_id  text primary key,
+                lat         double precision not null,
+                lon         double precision not null,
+                city        text,
+                region      text,
+                country     text,
+                last_seen   timestamptz default now()
+              );
+
+              alter table public.visitor_locations enable row level security;
+
+              create policy "anon can read"
+                on public.visitor_locations for select to anon using (true);
+
+              create policy "anon can insert"
+                on public.visitor_locations for insert to anon with check (true);
+
+              create policy "anon can update"
+                on public.visitor_locations for update to anon using (true) with check (true);
+
+           3. Copy your "Project URL" and the "anon public" API key
+              into CONFIG below, then reload the page.
+
+           PRIVACY
+           The raw IP address is never stored: it is hashed (SHA-256)
+           together with a salt before being sent to the backend.
+
+           FALLBACK
+           If CONFIG stays empty (or the request fails), the map still
+           works and simply shows only the current visitor.
            ============================================================ */
         (function () {
             var mapEl = document.getElementById('visitor-map');
             if (!mapEl) return;
 
             var locEl = document.getElementById('visitor-location');
+            var legendEl = document.getElementById('visitor-map-legend');
+
+            /* ---------------- configuration ---------------- */
+
+            var CONFIG = {
+                // e.g. 'https://abcdefghijklmn.supabase.co'
+                supabaseUrl: '',
+                // your project's "anon public" API key
+                supabaseAnonKey: '',
+                table: 'visitor_locations',
+                maxPoints: 1000,
+                // change this to any random string of your own
+                ipSalt: 'yize-li-personal-page-salt'
+            };
 
             var ECHARTS_URL = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js';
             var WORLD_URL = 'https://cdn.jsdelivr.net/npm/echarts@4.9.0/map/json/world.json';
 
-            var chart = null;
-            var visitor = null;
-            var mapReady = false;
+            var backendEnabled = !!(CONFIG.supabaseUrl && CONFIG.supabaseAnonKey);
 
-            /* ---------------- helpers ---------------- */
+            var chart = null;
+            var mapReady = false;
+            var selfPoint = null;   // the current visitor (highlighted marker)
+            var points = [];        // every visitor location to draw
+
+            /* ---------------- generic helpers ---------------- */
 
             function loadScript(src) {
                 return new Promise(function (resolve, reject) {
@@ -1807,6 +1913,181 @@
                 });
             }
 
+            /* Human-readable place name for one point */
+            function labelOf(p) {
+                var parts = [];
+                if (p.city) parts.push(p.city);
+                if (p.country) parts.push(p.country);
+                if (!parts.length && p.region) parts.push(p.region);
+                return parts.join(', ') || 'Unknown location';
+            }
+
+            /* ---- anonymous visitor id (never store the raw IP) ---- */
+
+            function fnv1a(str) {
+                var h = 0x811c9dc5;
+                for (var i = 0; i < str.length; i++) {
+                    h ^= str.charCodeAt(i);
+                    h = (h + ((h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24))) >>> 0;
+                }
+                return ('00000000' + h.toString(16)).slice(-8);
+            }
+
+            function hashId(str) {
+                if (window.crypto && window.crypto.subtle && window.TextEncoder) {
+                    return window.crypto.subtle
+                        .digest('SHA-256', new TextEncoder().encode(str))
+                        .then(function (buf) {
+                            var bytes = new Uint8Array(buf), hex = '';
+                            for (var i = 0; i < bytes.length; i++) {
+                                hex += ('0' + bytes[i].toString(16)).slice(-2);
+                            }
+                            return hex.slice(0, 32);
+                        })
+                        .catch(function () {return fnv1a(str);});
+                }
+                return Promise.resolve(fnv1a(str));
+            }
+
+            /* ---------------- Supabase REST helpers ---------------- */
+
+            function apiBase() {
+                return CONFIG.supabaseUrl.replace(/\/+$/, '') + '/rest/v1/' + CONFIG.table;
+            }
+
+            function authHeaders(extra) {
+                var h = {
+                    'apikey': CONFIG.supabaseAnonKey,
+                    'Authorization': 'Bearer ' + CONFIG.supabaseAnonKey
+                };
+                if (extra) {
+                    Object.keys(extra).forEach(function (k) {h[k] = extra[k];});
+                }
+                return h;
+            }
+
+            /* Upsert this visitor (primary key = visitor_id) */
+            function storeVisitor(v, id) {
+                if (!backendEnabled) return Promise.resolve(false);
+                return fetch(apiBase(), {
+                    method: 'POST',
+                    cache: 'no-store',
+                    headers: authHeaders({
+                        'Content-Type': 'application/json',
+                        'Prefer': 'resolution=merge-duplicates,return=minimal'
+                    }),
+                    body: JSON.stringify([{
+                        visitor_id: id,
+                        lat: v.lat,
+                        lon: v.lon,
+                        city: v.city || null,
+                        region: v.region || null,
+                        country: v.country || null,
+                        last_seen: new Date().toISOString()
+                    }])
+                }).then(function (r) {return r.ok;}).catch(function () {return false;});
+            }
+
+            /* Fetch every stored visitor */
+            function loadAllVisitors() {
+                if (!backendEnabled) return Promise.resolve([]);
+                var url = apiBase() +
+                    '?select=visitor_id,lat,lon,city,region,country,last_seen' +
+                    '&order=last_seen.desc&limit=' + CONFIG.maxPoints;
+                return fetch(url, {headers: authHeaders(), cache: 'no-store'})
+                    .then(function (r) {return r.ok ? r.json() : [];})
+                    .catch(function () {return [];});
+            }
+
+            /* Merge backend rows with the current visitor */
+            function mergePoints(rows, self) {
+                var byId = {};
+
+                (rows || []).forEach(function (r) {
+                    if (!r || !r.visitor_id) return;
+                    var lat = toNum(r.lat), lon = toNum(r.lon);
+                    if (lat === null || lon === null) return;
+                    byId[r.visitor_id] = {
+                        id: r.visitor_id,
+                        lat: lat,
+                        lon: lon,
+                        city: r.city,
+                        region: r.region,
+                        country: r.country,
+                        lastSeen: r.last_seen,
+                        isSelf: false
+                    };
+                });
+
+                if (self) {
+                    if (byId[self.id]) {
+                        var hit = byId[self.id];
+                        hit.isSelf = true;
+                        hit.lat = self.lat;
+                        hit.lon = self.lon;
+                        hit.city = self.city || hit.city;
+                        hit.region = self.region || hit.region;
+                        hit.country = self.country || hit.country;
+                    } else {
+                        byId[self.id] = self;
+                    }
+                }
+
+                return Object.keys(byId).map(function (k) {return byId[k];});
+            }
+
+            /* ---------------- geolocation of the current visitor ---------------- */
+
+            function fetchVisitor() {
+                var sources = [
+                    function () {
+                        return fetch('https://ipapi.co/json/').then(function (r) {return r.json();})
+                            .then(function (d) {
+                                if (!d || d.error) throw new Error('ipapi error');
+                                var lat = toNum(d.latitude), lon = toNum(d.longitude);
+                                if (lat === null || lon === null) throw new Error('no coords');
+                                return {
+                                    ip: d.ip, lat: lat, lon: lon,
+                                    city: d.city, region: d.region,
+                                    country: d.country_name || d.country
+                                };
+                            });
+                    },
+                    function () {
+                        return fetch('https://ipwho.is/').then(function (r) {return r.json();})
+                            .then(function (d) {
+                                if (!d || d.success === false) throw new Error('ipwho error');
+                                var lat = toNum(d.latitude), lon = toNum(d.longitude);
+                                if (lat === null || lon === null) throw new Error('no coords');
+                                return {
+                                    ip: d.ip, lat: lat, lon: lon,
+                                    city: d.city, region: d.region,
+                                    country: d.country
+                                };
+                            });
+                    },
+                    function () {
+                        return fetch('https://get.geojs.io/v1/ip/geo.json').then(function (r) {return r.json();})
+                            .then(function (d) {
+                                var lat = toNum(d && d.latitude), lon = toNum(d && d.longitude);
+                                if (lat === null || lon === null) throw new Error('no coords');
+                                return {
+                                    ip: d.ip, lat: lat, lon: lon,
+                                    city: d.city, region: d.region,
+                                    country: d.country
+                                };
+                            });
+                    }
+                ];
+
+                var i = 0;
+                function next() {
+                    if (i >= sources.length) return Promise.reject(new Error('all geolocation sources failed'));
+                    return sources[i++]().catch(next);
+                }
+                return next();
+            }
+
             /* ---------------- theme tokens ---------------- */
 
             function themeTokens() {
@@ -1815,7 +2096,9 @@
                     land: dark ? '#1c2b42' : '#e9eef6',
                     border: dark ? '#3a4a63' : '#ccd7e6',
                     hover: dark ? '#273a55' : '#dbe6f6',
-                    point: dark ? '#22d3ee' : '#1a73e8',
+                    point: dark ? '#6ba3f5' : '#1a73e8',
+                    pointBorder: dark ? '#0f172a' : '#ffffff',
+                    self: dark ? '#f0a35e' : '#e67e22',
                     text: dark ? '#cbd5e1' : '#374151',
                     tooltipBg: dark ? 'rgba(15,23,42,0.96)' : 'rgba(255,255,255,0.98)',
                     tooltipBorder: dark ? '#334155' : '#e5e7eb',
@@ -1827,23 +2110,57 @@
 
             function buildOption() {
                 var t = themeTokens();
+
+                var selfPts = [], otherPts = [];
+                points.forEach(function (p) {
+                    (p.isSelf ? selfPts : otherPts).push(p);
+                });
+
                 var series = [];
 
-                if (visitor) {
+                /* Every other visitor — small static dots */
+                if (otherPts.length) {
                     series.push({
+                        name: 'Other visitors',
+                        type: 'scatter',
+                        coordinateSystem: 'geo',
+                        geoIndex: 0,
+                        data: otherPts.map(function (p) {
+                            return {name: labelOf(p), value: [p.lon, p.lat]};
+                        }),
+                        symbolSize: 7,
+                        itemStyle: {
+                            color: t.point,
+                            opacity: 0.8,
+                            borderColor: t.pointBorder,
+                            borderWidth: 0.8
+                        },
+                        emphasis: {scale: 1.7, itemStyle: {opacity: 1}},
+                        zlevel: 1
+                    });
+                }
+
+                /* The current visitor — pulsing marker with a label */
+                if (selfPts.length) {
+                    series.push({
+                        name: 'You',
                         type: 'effectScatter',
                         coordinateSystem: 'geo',
                         geoIndex: 0,
-                        data: [{name: visitor.label, value: [visitor.lon, visitor.lat]}],
-                        symbolSize: 9,
+                        data: selfPts.map(function (p) {
+                            return {name: labelOf(p) + ' (you)', value: [p.lon, p.lat]};
+                        }),
+                        symbolSize: 10,
                         showEffectOn: 'render',
                         rippleEffect: {brushType: 'stroke', scale: 3.2, period: 4},
-                        itemStyle: {color: t.point, shadowBlur: 12, shadowColor: t.point},
+                        itemStyle: {color: t.self, shadowBlur: 12, shadowColor: t.self},
                         label: {
                             show: true,
                             position: 'right',
-                            offset: [6, 0],
-                            formatter: '{b}',
+                            offset: [7, 0],
+                            formatter: function (p) {
+                                return String(p.data.name).replace(' (you)', '');
+                            },
                             color: t.text,
                             fontSize: 11,
                             fontWeight: 600
@@ -1857,7 +2174,7 @@
                     backgroundColor: 'transparent',
                     animationDuration: 900,
                     tooltip: {
-                        show: !!visitor,
+                        show: true,
                         trigger: 'item',
                         backgroundColor: t.tooltipBg,
                         borderColor: t.tooltipBorder,
@@ -1894,59 +2211,46 @@
                 chart.setOption(buildOption(), true);
             }
 
-            /* ---------------- geolocation ---------------- */
+            /* ---------------- legend / status line ---------------- */
 
-            function fetchVisitor() {
-                var sources = [
-                    function () {
-                        return fetch('https://ipapi.co/json/').then(function (r) {return r.json();})
-                            .then(function (d) {
-                                if (!d || d.error) throw new Error('ipapi error');
-                                var lat = toNum(d.latitude), lon = toNum(d.longitude);
-                                if (lat === null || lon === null) throw new Error('no coords');
-                                return {
-                                    lat: lat, lon: lon,
-                                    city: d.city, region: d.region,
-                                    country: d.country_name || d.country
-                                };
-                            });
-                    },
-                    function () {
-                        return fetch('https://ipwho.is/').then(function (r) {return r.json();})
-                            .then(function (d) {
-                                if (!d || d.success === false) throw new Error('ipwho error');
-                                var lat = toNum(d.latitude), lon = toNum(d.longitude);
-                                if (lat === null || lon === null) throw new Error('no coords');
-                                return {
-                                    lat: lat, lon: lon,
-                                    city: d.city, region: d.region,
-                                    country: d.country
-                                };
-                            });
-                    },
-                    function () {
-                        return fetch('https://get.geojs.io/v1/ip/geo.json').then(function (r) {return r.json();})
-                            .then(function (d) {
-                                var lat = toNum(d && d.latitude), lon = toNum(d && d.longitude);
-                                if (lat === null || lon === null) throw new Error('no coords');
-                                return {
-                                    lat: lat, lon: lon,
-                                    city: d.city, region: d.region,
-                                    country: d.country
-                                };
-                            });
-                    }
-                ];
+            function updateLegend() {
+                if (!legendEl) return;
 
-                var i = 0;
-                function next() {
-                    if (i >= sources.length) return Promise.reject(new Error('all geolocation sources failed'));
-                    return sources[i++]().catch(next);
+                var total = points.length;
+                var places = {};
+                points.forEach(function (p) {
+                    var key = (p.city || p.region || p.country || 'unknown').toLowerCase();
+                    places[key] = true;
+                });
+                var placeCount = Object.keys(places).length;
+
+                var html =
+                    '<span class="legend-item">' +
+                    '<span class="legend-dot legend-dot--self"></span>You</span>' +
+                    '<span class="legend-item">' +
+                    '<span class="legend-dot legend-dot--other"></span>Other visitors</span>' +
+                    '<span class="legend-item">' +
+                    '<i class="fa-solid fa-users" aria-hidden="true"></i>' +
+                    total + ' visitor' + (total === 1 ? '' : 's') +
+                    (placeCount ? ' · ' + placeCount + ' location' + (placeCount === 1 ? '' : 's') : '') +
+                    '</span>';
+
+                if (!backendEnabled) {
+                    html += '<span class="visitor-map-note">' +
+                        '</span>';
                 }
-                return next();
+
+                legendEl.innerHTML = html;
             }
 
-            /* ---------------- bootstrap ---------------- */
+            function updateLocationLabel(v) {
+                if (!locEl) return;
+                locEl.innerHTML =
+                    '<i class="fa-solid fa-location-dot" aria-hidden="true"></i> You: ' +
+                    escapeHtml(labelOf(v));
+            }
+
+            /* ---------------- bootstrap: map engine ---------------- */
 
             Promise.all([loadScript(ECHARTS_URL), loadJSON(WORLD_URL)])
                 .then(function (res) {
@@ -1966,21 +2270,44 @@
                     if (locEl) locEl.innerHTML = '';
                 });
 
+            /* ---------------- bootstrap: visitor flow ---------------- */
+
             fetchVisitor()
                 .then(function (v) {
-                    var place = '';
-                    if (v.city) place = v.city + (v.country ? ', ' + v.country : '');
-                    else if (v.region) place = v.region + (v.country ? ', ' + v.country : '');
-                    else place = v.country || 'Your location';
+                    updateLocationLabel(v);
 
-                    visitor = {lat: v.lat, lon: v.lon, label: place};
+                    var seed = v.ip
+                        ? ('ip:' + v.ip)
+                        : ('geo:' + v.lat.toFixed(3) + ',' + v.lon.toFixed(3));
 
-                    if (locEl) {
-                        locEl.innerHTML =
-                            '<i class="fa-solid fa-location-dot" aria-hidden="true"></i> ' +
-                            escapeHtml(place);
-                    }
-                    render();
+                    return hashId(seed + '|' + CONFIG.ipSalt).then(function (id) {
+                        selfPoint = {
+                            id: id,
+                            lat: v.lat,
+                            lon: v.lon,
+                            city: v.city,
+                            region: v.region,
+                            country: v.country,
+                            lastSeen: new Date().toISOString(),
+                            isSelf: true
+                        };
+
+                        // Draw the current visitor immediately, then enrich with
+                        // the full list as soon as the backend responds.
+                        points = [selfPoint];
+                        render();
+                        updateLegend();
+
+                        if (!backendEnabled) return null;
+
+                        return storeVisitor(v, id)
+                            .then(loadAllVisitors)
+                            .then(function (rows) {
+                                points = mergePoints(rows, selfPoint);
+                                render();
+                                updateLegend();
+                            });
+                    });
                 })
                 .catch(function () {
                     if (locEl) {

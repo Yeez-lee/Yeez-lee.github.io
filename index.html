@@ -58,7 +58,6 @@
             --color-tag-career: #8e44ad;
             --color-tag-project: #16a34a;
             --color-tag-presenting: #0e7490;
-            /* Presenting tag color (teal/cyan) */
             --color-scrollbar-track: #f0f0f0;
             --color-scrollbar-thumb: #c1c7cd;
             --color-scrollbar-thumb-hover: #a0a7ae;
@@ -95,7 +94,6 @@
             --color-avatar-bg: #334155;
             --color-tag-project: #22c55e;
             --color-tag-presenting: #22d3ee;
-            /* Presenting tag color (dark mode) */
             --color-scrollbar-track: #1e293b;
             --color-scrollbar-thumb: #475569;
             --color-scrollbar-thumb-hover: #64748b;
@@ -131,7 +129,6 @@
             transition: background-color var(--transition-medium), color var(--transition-medium);
         }
 
-        /* Mouse glow */
         body::after {
             content: "";
             position: fixed;
@@ -213,7 +210,6 @@
             color: var(--color-primary);
         }
 
-        /* ---- Theme Toggle Button ---- */
         .theme-toggle {
             margin-right: auto;
             background: transparent;
@@ -258,7 +254,6 @@
             display: inline-block;
         }
 
-        /* Small dot indicator for auto mode */
         .theme-toggle::before {
             content: "";
             position: absolute;
@@ -281,7 +276,7 @@
         }
 
         /* ============================================
-                   Header  (name on the left · contact on the right)
+                   Header
                 ============================================ */
         .header {
             display: flex;
@@ -292,7 +287,6 @@
             gap: 1.2rem;
         }
 
-        /* Left: avatar + name */
         .header-center {
             display: flex;
             align-items: center;
@@ -301,7 +295,6 @@
             flex-shrink: 0;
         }
 
-        /* Right: contact info (vertically stacked, right-aligned) */
         .header-left {
             font-size: 0.92rem;
             color: var(--color-text-secondary);
@@ -403,9 +396,6 @@
             margin-top: 1.2rem;
         }
 
-        /* ============================================
-                   Links (generic)
-                ============================================ */
         .text-link {
             color: var(--color-primary);
             text-decoration: none;
@@ -419,7 +409,7 @@
         }
 
         /* ============================================
-                   About & Research Text
+                   About & Research
                 ============================================ */
         .about-text p,
         .research-text p {
@@ -447,7 +437,7 @@
         }
 
         /* ============================================
-                   News (Scrollable)
+                   News
                 ============================================ */
         .news-container {
             max-height: 220px;
@@ -479,7 +469,6 @@
             background: var(--color-scrollbar-thumb-hover);
         }
 
-        /* --- Single-row flex layout; text wraps within the remaining space --- */
         .news-item {
             padding: 0.45rem 0;
             border-bottom: 1px solid var(--color-border-light);
@@ -527,17 +516,14 @@
             background-color: var(--color-tag-project);
         }
 
-        /* Presenting tag */
         .tag-presenting {
             background-color: var(--color-tag-presenting);
         }
 
         [data-theme="dark"] .tag-presenting {
             color: #06202a;
-            /* keep contrast on bright cyan in dark mode */
         }
 
-        /* --- Text takes the remaining width and wraps naturally --- */
         .news-text {
             flex: 1 1 auto;
             min-width: 0;
@@ -558,7 +544,7 @@
         }
 
         /* ============================================
-                   Education & Experience Entries
+                   Education & Experience
                 ============================================ */
         .entry {
             display: flex;
@@ -607,7 +593,7 @@
         }
 
         /* ============================================
-                   Selected Publications
+                   Publications
                 ============================================ */
         .pub-list {
             list-style: none;
@@ -700,31 +686,42 @@
 
         /* ============================================
                    Visitor world map
+                   ------------------------------------------------------------
+                   The FeedPulse widget draws its own tall box with the map
+                   vertically centered. To remove that built-in whitespace we:
+                     1) Give #visitor-map a small fixed height + overflow:hidden
+                     2) Absolutely position the widget's child and center it
+                        on the small container — the excess is clipped, but the
+                        map itself keeps its native aspect ratio (never squashed).
+                   Adjust --vm-h to taste (smaller = tighter crop).
                 ============================================ */
         .visitor-map-wrap {
-            margin-top: 1rem;
-            padding: 0.7rem 0.8rem 0.35rem;
-            border: 1px solid var(--color-border-light);
-            border-radius: var(--radius-small);
-            background: var(--color-news-bg);
+            --vm-h: 240px;
+            margin-top: 0.6rem;
+            padding: 0;
+            border: none;
+            border-radius: 0;
+            background: transparent;
             text-align: left;
-            transition: background-color var(--transition-medium), border-color var(--transition-medium);
+            overflow: hidden;
+            box-shadow: none;
         }
 
         .visitor-map-head {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 0.6rem;
+            gap: 0.4rem;
             flex-wrap: wrap;
-            font-size: 0.8rem;
-            margin-bottom: 0.35rem;
+            font-size: 0.75rem;
+            line-height: 1.25;
+            margin-bottom: 0.15rem;
         }
 
         .visitor-map-head .vm-title {
             display: inline-flex;
             align-items: center;
-            gap: 0.4rem;
+            gap: 0.3rem;
             font-weight: 600;
             color: var(--color-text-secondary);
         }
@@ -736,9 +733,9 @@
         #visitor-location {
             display: inline-flex;
             align-items: center;
-            gap: 0.35rem;
+            gap: 0.25rem;
             color: var(--color-text-muted);
-            font-size: 0.78rem;
+            font-size: 0.74rem;
             max-width: 100%;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -749,22 +746,79 @@
             color: var(--color-primary);
         }
 
+        /*
+           Fixed-height clipping container.
+           Do NOT set a fixed height on the widget child itself — that is
+           what squashed the map. The widget keeps its own natural height;
+           we only crop the surrounding empty space.
+        */
         #visitor-map {
             width: 100%;
-            min-height: 250px;
-            height: auto;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            height: var(--vm-h);
+            min-height: 0;
+            margin: 0;
+            padding: 0;
+            position: relative;
             overflow: hidden;
+            line-height: normal;
+            border-radius: 8px;
+            background:
+                radial-gradient(circle at 50% 50%,
+                    rgba(26, 115, 232, 0.055) 0%,
+                    rgba(26, 115, 232, 0.018) 50%,
+                    transparent 76%);
         }
 
-        #visitor-map>* {
-            max-width: 100%;
+        [data-theme="dark"] #visitor-map {
+            background:
+                radial-gradient(circle at 50% 50%,
+                    rgba(107, 163, 245, 0.08) 0%,
+                    rgba(107, 163, 245, 0.025) 50%,
+                    transparent 76%);
+        }
+
+        /*
+           Absolutely center the injected widget content inside the clipped
+           container. Its native aspect ratio is preserved — the top and
+           bottom whitespace is simply cut away by overflow:hidden.
+
+           If the visible map sits a bit too high or too low, nudge with
+           translate(-50%, calc(-50% + Xpx)) below.
+        */
+        #visitor-map>*:not(script):not(style) {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            max-width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        #visitor-map>div {
+            max-width: 100% !important;
+        }
+
+        #visitor-map iframe,
+        #visitor-map canvas,
+        #visitor-map svg,
+        #visitor-map img {
+            display: block !important;
+            max-width: 100% !important;
+            margin: 0 auto !important;
+            border: 0 !important;
+        }
+
+        #visitor-map canvas,
+        #visitor-map svg,
+        #visitor-map img {
+            height: auto !important;
         }
 
         .visitor-map-fallback {
-            height: 250px;
+            width: 100%;
+            height: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -772,7 +826,7 @@
             text-align: center;
             font-size: 0.85rem;
             color: var(--color-text-faint);
-            padding: 1rem;
+            padding: 0.6rem;
         }
 
         /* ---- Legend under the map ---- */
@@ -780,18 +834,23 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 0.9rem;
+            gap: 0.6rem;
             flex-wrap: wrap;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
+            line-height: 1.2;
             color: var(--color-text-muted);
-            padding: 0.3rem 0 0.45rem;
-            min-height: 1.4rem;
+            padding: 0.2rem 0 0;
+            margin: 0;
+        }
+
+        .visitor-map-legend:empty {
+            display: none;
         }
 
         .visitor-map-legend .legend-item {
             display: inline-flex;
             align-items: center;
-            gap: 0.35rem;
+            gap: 0.3rem;
         }
 
         .visitor-map-legend .legend-item i {
@@ -824,7 +883,7 @@
         .visitor-map-note {
             flex-basis: 100%;
             text-align: center;
-            font-size: 0.72rem;
+            font-size: 0.7rem;
             color: var(--color-text-faint);
         }
 
@@ -902,7 +961,7 @@
         }
 
         /* ============================================
-                   Toast notification
+                   Toast
                 ============================================ */
         .toast {
             position: fixed;
@@ -932,7 +991,7 @@
         }
 
         /* ============================================
-                   Responsive Design
+                   Responsive
                 ============================================ */
         @media (max-width: 768px) {
             body {
@@ -951,7 +1010,6 @@
                 gap: 0.8rem;
             }
 
-            /* Mobile: recenter contact info */
             .header-left {
                 align-items: center;
                 text-align: center;
@@ -1004,7 +1062,6 @@
                 max-height: 180px;
             }
 
-            /* Mobile: date / tag / text stack vertically; text takes the full row */
             .news-item {
                 flex-direction: column;
                 gap: 0.2rem;
@@ -1031,18 +1088,14 @@
                 height: 42px;
             }
 
-            /* Visitor map: shorter on mobile */
-            #visitor-map {
-                min-height: 185px;
-            }
-
-            .visitor-map-fallback {
-                height: 185px;
+            .visitor-map-wrap {
+                --vm-h: 190px;
             }
 
             .visitor-map-head {
                 justify-content: center;
                 text-align: center;
+                margin-bottom: 0.1rem;
             }
         }
 
@@ -1060,17 +1113,13 @@
                 font-size: 0.85rem;
             }
 
-            #visitor-map {
-                min-height: 155px;
-            }
-
-            .visitor-map-fallback {
-                height: 155px;
+            .visitor-map-wrap {
+                --vm-h: 160px;
             }
         }
 
         /* ============================================
-                   Accessibility — Reduced Motion
+                   Reduced Motion
                 ============================================ */
         @media (prefers-reduced-motion: reduce) {
             html {
@@ -1107,9 +1156,6 @@
             }
         }
 
-        /* ============================================
-                   Accessibility — Focus Visible
-                ============================================ */
         a:focus-visible,
         .navbar a:focus-visible {
             outline: 2px solid var(--color-primary);
@@ -1121,12 +1167,10 @@
 
 <body>
 
-    <!-- Scroll progress bar -->
     <div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
 
     <div class="container">
 
-        <!-- ==================== Navigation ==================== -->
         <nav class="navbar" aria-label="Main navigation">
             <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle dark mode"
                 title="Toggle dark mode">
@@ -1142,11 +1186,9 @@
             <a href="#service">Service</a>
         </nav>
 
-        <!-- ==================== Header ==================== -->
         <header class="header">
 
             <div class="header-center">
-                <!-- Replace images/avatar.jpg -->
                 <img class="avatar" src="imgs/YizeLi_25.jpg" alt="Portrait of Yize Li" loading="lazy"
                     onerror="this.style.display='none'">
                 <div class="name-title">
@@ -1178,7 +1220,6 @@
 
         </header>
 
-        <!-- ==================== About ==================== -->
         <section id="about" aria-labelledby="about-title">
             <h2 class="section-title" id="about-title">About</h2>
             <div class="about-text">
@@ -1209,7 +1250,6 @@
             </div>
         </section>
 
-        <!-- ==================== Research ==================== -->
         <section id="research" aria-labelledby="research-title">
             <h2 class="section-title" id="research-title">Research</h2>
             <div class="research-text">
@@ -1233,7 +1273,6 @@
             </div>
         </section>
 
-        <!-- ==================== News ==================== -->
         <section id="news" aria-labelledby="news-title">
             <h2 class="section-title" id="news-title">News</h2>
             <div class="news-container" role="region" aria-label="News feed" tabindex="0">
@@ -1324,11 +1363,9 @@
             </p>
         </section>
 
-        <!-- ==================== Selected Publications ==================== -->
         <section id="publications" aria-labelledby="publications-title">
             <h2 class="section-title" id="publications-title">Selected Publications</h2>
 
-            <!-- ===== Preprints ===== -->
             <h3 class="subsection-title">Preprints</h3>
             <ol class="pub-list">
                 <li>
@@ -1361,7 +1398,6 @@
                 </li>
             </ol>
 
-            <!-- ===== Published ===== -->
             <h3 class="subsection-title subsection-title--spaced">Published</h3>
             <ol class="pub-list">
                 <li>
@@ -1414,7 +1450,6 @@
             </ol>
         </section>
 
-        <!-- ==================== Education ==================== -->
         <section id="education" aria-labelledby="education-title">
             <h2 class="section-title" id="education-title">Education</h2>
             <div class="entry">
@@ -1436,7 +1471,6 @@
             </div>
         </section>
 
-        <!-- ==================== Experience ==================== -->
         <section id="experience" aria-labelledby="experience-title">
             <h2 class="section-title" id="experience-title">Experience</h2>
             <div class="entry">
@@ -1455,7 +1489,6 @@
             </div>
         </section>
 
-        <!-- ===== Service ===== -->
         <section id="service">
             <h2 class="section-title">Service</h2>
             <div class="service-text">
@@ -1465,11 +1498,9 @@
             </div>
         </section>
 
-        <!-- ==================== Footer ==================== -->
         <footer class="footer">
             <div>© Last update by Yize Li: 2026/09</div>
 
-            <!-- ===== Visitor world map — all visitors ===== -->
             <div class="visitor-map-wrap">
                 <div class="visitor-map-head">
                     <span class="vm-title">
@@ -1488,14 +1519,11 @@
 
     </div>
 
-    <!-- Back-to-top button -->
     <button id="back-to-top" class="back-to-top" type="button" aria-label="Back to top" title="Back to top">
         <i class="fa-solid fa-arrow-up" aria-hidden="true"></i>
     </button>
 
-    <!-- Main scripts -->
     <script>
-        /* Toast helper (function declaration — hoisted, usable above its definition) */
         function showToast(msg) {
             var toast = document.createElement('div');
             toast.className = 'toast';
@@ -1508,20 +1536,12 @@
             }, 2000);
         }
 
-        /* ============================================================
-           Theme system
-           - Manual choice  → saved in localStorage, always wins
-           - Otherwise      → auto: pick by IP-based local time
-                              (fallback: browser local time)
-           ============================================================ */
         (function () {
             var toggle = document.getElementById('theme-toggle');
             if (!toggle) return;
 
-            var DAY_START = 6;   // 06:00 → light
-            var DAY_END = 18;    // 18:00 → dark
-
-            /* ---------- helpers ---------- */
+            var DAY_START = 6;
+            var DAY_END = 18;
 
             function applyTheme(theme, source) {
                 document.documentElement.setAttribute('data-theme', theme);
@@ -1542,11 +1562,11 @@
             }
 
             function saveTheme(theme) {
-                try {localStorage.setItem('theme', theme);} catch (e) { /* ignore */}
+                try {localStorage.setItem('theme', theme);} catch (e) { }
             }
 
             function clearSaved() {
-                try {localStorage.removeItem('theme');} catch (e) { /* ignore */}
+                try {localStorage.removeItem('theme');} catch (e) { }
             }
 
             function updateToggleTitle() {
@@ -1562,13 +1582,9 @@
                 toggle.setAttribute('aria-label', label);
             }
 
-            /* ---------- IP-based local time ---------- */
-
             function fetchIpTime() {
                 var endpoints = [
                     {
-                        // worldtimeapi.org returns a "datetime" string like
-                        // "2024-05-14T12:34:56.789-04:00" — the hour part is local time.
                         url: 'https://worldtimeapi.org/api/ip',
                         parse: function (d) {
                             if (d && typeof d.datetime === 'string') {
@@ -1579,7 +1595,6 @@
                         }
                     },
                     {
-                        // ipapi.co returns an IANA timezone name — derive hour via Intl.
                         url: 'https://ipapi.co/json/',
                         parse: function (d) {
                             if (d && typeof d.timezone === 'string') {
@@ -1627,7 +1642,6 @@
                 return tryOne(0);
             }
 
-            /* Re-evaluate auto theme (browser time immediately, IP time when it arrives) */
             function refreshAutoTheme() {
                 applyTheme(themeFromHour(browserHour()), 'auto');
                 fetchIpTime().then(function (hour) {
@@ -1637,9 +1651,6 @@
                 });
             }
 
-            /* ---------- user interactions ---------- */
-
-            /* Single click → manual toggle (persisted) */
             toggle.addEventListener('click', function () {
                 var current = document.documentElement.getAttribute('data-theme') || 'light';
                 var next = current === 'dark' ? 'light' : 'dark';
@@ -1648,18 +1659,12 @@
                 showToast(next === 'dark' ? 'Dark mode (manual)' : 'Light mode (manual)');
             });
 
-            /* Double click → clear manual choice & return to auto */
             toggle.addEventListener('dblclick', function () {
                 clearSaved();
                 refreshAutoTheme();
                 showToast('Theme set to auto (based on your local time)');
             });
 
-            /* ---------- initialisation ---------- */
-
-            // The <head> script already applied an initial theme synchronously:
-            //   - manual preference if saved, otherwise browser-time auto.
-            // Here we just refine it with IP-based time when in auto mode.
             if (!getSaved()) {
                 fetchIpTime().then(function (hour) {
                     if (hour !== null && hour !== undefined && !isNaN(hour)) {
@@ -1672,8 +1677,6 @@
                 updateToggleTitle();
             }
 
-            /* Optional: re-evaluate the auto theme every 10 minutes so it
-               switches naturally at the day/night boundary. */
             setInterval(function () {
                 if (!getSaved()) {
                     applyTheme(themeFromHour(browserHour()), 'auto');
@@ -1681,7 +1684,6 @@
             }, 10 * 60 * 1000);
         })();
 
-        /* Copy email on click */
         (function () {
             document.querySelectorAll('a[href^="mailto:"]').forEach(function (a) {
                 a.addEventListener('click', function (e) {
@@ -1697,7 +1699,6 @@
             });
         })();
 
-        /* Scroll progress + back-to-top */
         (function () {
             var progress = document.getElementById('scroll-progress');
             var backBtn = document.getElementById('back-to-top');
@@ -1724,7 +1725,6 @@
             }
         })();
 
-        /* Active section highlight */
         (function () {
             var sections = document.querySelectorAll('section[id]');
             var navLinks = document.querySelectorAll('.navbar a[href^="#"]');
@@ -1746,7 +1746,6 @@
             }
         })();
 
-        /* Reveal on scroll */
         (function () {
             var targets = document.querySelectorAll('section, .header');
             if (!targets.length) return;
@@ -1770,7 +1769,6 @@
             targets.forEach(function (el) {io.observe(el);});
         })();
 
-        /* Mouse glow */
         (function () {
             if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
@@ -1790,22 +1788,6 @@
 
         /* ============================================================
            Visitor world map — FeedPulse edition
-           ------------------------------------------------------------
-           Purpose:
-           - Keep the current visitor's "You: City, Country" label.
-           - Let FeedPulse track/store visitor history and render the
-             visitor map, so this page needs no Supabase/database/API key.
-
-           ONE-TIME SETUP — no account/email/API key required
-           1. Open: https://feed-pulse.com/widgets/visitor-globe
-           2. Enter the public URL of this website and click "Create Site ID".
-           3. Paste the generated Site ID below, replacing
-              YOUR_FEEDPULSE_SITE_ID.
-
-           Notes:
-           - Visitor positions are approximate IP/network locations,
-             not GPS coordinates.
-           - The map/history is provided and maintained by FeedPulse.
            ============================================================ */
         (function () {
             var mapEl = document.getElementById('visitor-map');
@@ -1814,12 +1796,7 @@
             var locEl = document.getElementById('visitor-location');
             var legendEl = document.getElementById('visitor-map-legend');
 
-            /* ------------------------------------------------------------
-               ONLY EDIT THIS VALUE after generating your free Site ID:
-               ------------------------------------------------------------ */
             var FEEDPULSE_SITE_ID = '02bde74f-335b-4d70-bd2f-888dd424f4d1';
-
-            /* ---------------- generic helpers ---------------- */
 
             function toNum(v) {
                 var n = parseFloat(v);
@@ -1845,11 +1822,6 @@
                 if (!parts.length && v && v.region) parts.push(v.region);
                 return parts.join(', ') || 'Unknown location';
             }
-
-            /* ---------------- current visitor label ----------------
-               Keep the original no-key IP geolocation fallbacks so the
-               "You: City, Country" text above the map still works.
-               -------------------------------------------------------- */
 
             function fetchVisitor() {
                 var sources = [
@@ -1922,18 +1894,12 @@
                     escapeHtml(labelOf(v));
             }
 
-            /* ---------------- FeedPulse map ---------------- */
-
             function setLegend(state) {
                 if (!legendEl) return;
 
                 if (state === 'ready') {
                     legendEl.innerHTML =
-                        '<span class="legend-item">' +
-                        '<i class="fa-solid fa-users" aria-hidden="true"></i>' +
-                        'Live visitor map</span>' +
-                        '<span class="visitor-map-note">' +
-                        '</span>';
+                        '<span class="legend-item">';
                 } else if (state === 'error') {
                     legendEl.innerHTML =
                         '<span class="visitor-map-note">' +
@@ -1962,9 +1928,6 @@
                     return;
                 }
 
-                /* FeedPulse's official embed script. The script is appended
-                   inside #visitor-map so the generated widget stays exactly
-                   where the original map was. */
                 mapEl.innerHTML = '';
 
                 var script = document.createElement('script');
@@ -1972,7 +1935,7 @@
                 script.src =
                     'https://feed-pulse.com/api/embed/visitor-globe.js?site_id=' +
                     encodeURIComponent(siteId) +
-                    '&map=globe&sz=md&theme=sky&speed=normal';
+                    '&map=flat&sz=med&theme=sky&speed=fast';
 
                 script.onerror = function () {
                     mapEl.innerHTML =
@@ -1989,7 +1952,6 @@
 
             loadFeedPulseMap();
 
-            /* Preserve the original current-location status text. */
             fetchVisitor()
                 .then(updateLocationLabel)
                 .catch(function () {

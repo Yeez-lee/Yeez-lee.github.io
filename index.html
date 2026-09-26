@@ -685,83 +685,30 @@
         }
 
         /* ============================================
-                   Visitor world map
+                   Visitor world map  (MapMyVisitors)
                    ------------------------------------------------------------
-                   The FeedPulse widget draws its own tall box with the map
-                   vertically centered. To remove that built-in whitespace we:
-                     1) Give #visitor-map a small fixed height + overflow:hidden
-                     2) Absolutely position the widget's child and center it
-                        on the small container — the excess is clipped, but the
-                        map itself keeps its native aspect ratio (never squashed).
-                   Adjust --vm-h to taste (smaller = tighter crop).
+                   Only the map itself — no titles, labels or legend.
+                   Compact, centered frame; the widget scales itself down
+                   to fit, so nothing is ever squashed.
                 ============================================ */
         .visitor-map-wrap {
-            --vm-h: 240px;
-            margin-top: 0.6rem;
+            margin-top: 1.2rem;
             padding: 0;
             border: none;
             border-radius: 0;
             background: transparent;
-            text-align: left;
-            overflow: hidden;
-            box-shadow: none;
+            text-align: center;
         }
 
-        .visitor-map-head {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 0.4rem;
-            flex-wrap: wrap;
-            font-size: 0.75rem;
-            line-height: 1.25;
-            margin-bottom: 0.15rem;
-        }
-
-        .visitor-map-head .vm-title {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.3rem;
-            font-weight: 600;
-            color: var(--color-text-secondary);
-        }
-
-        .visitor-map-head .vm-title i {
-            color: var(--color-primary);
-        }
-
-        #visitor-location {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.25rem;
-            color: var(--color-text-muted);
-            font-size: 0.74rem;
-            max-width: 100%;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        #visitor-location i {
-            color: var(--color-primary);
-        }
-
-        /*
-           Fixed-height clipping container.
-           Do NOT set a fixed height on the widget child itself — that is
-           what squashed the map. The widget keeps its own natural height;
-           we only crop the surrounding empty space.
-        */
         #visitor-map {
+            --vm-max-w: 480px;
             width: 100%;
-            height: var(--vm-h);
-            min-height: 0;
-            margin: 0;
+            max-width: var(--vm-max-w);
+            margin: 0 auto;
             padding: 0;
-            position: relative;
-            overflow: hidden;
             line-height: normal;
-            border-radius: 8px;
+            overflow: hidden;
+            border-radius: 10px;
             background:
                 radial-gradient(circle at 50% 50%,
                     rgba(26, 115, 232, 0.055) 0%,
@@ -775,116 +722,31 @@
                     rgba(107, 163, 245, 0.08) 0%,
                     rgba(107, 163, 245, 0.025) 50%,
                     transparent 76%);
+            box-shadow: 0 0 0 1px var(--color-border);
         }
 
-        /*
-           Absolutely center the injected widget content inside the clipped
-           container. Its native aspect ratio is preserved — the top and
-           bottom whitespace is simply cut away by overflow:hidden.
-
-           If the visible map sits a bit too high or too low, nudge with
-           translate(-50%, calc(-50% + Xpx)) below.
-        */
-        #visitor-map>*:not(script):not(style) {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 100%;
+        /* Keep whatever the widget injects inside the frame */
+        #visitor-map>div,
+        #visitor-map>span,
+        #visitor-map>a {
             max-width: 100% !important;
-            margin: 0 !important;
-            padding: 0 !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
         }
 
-        #visitor-map>div {
-            max-width: 100% !important;
-        }
-
-        #visitor-map iframe,
-        #visitor-map canvas,
+        #visitor-map img,
         #visitor-map svg,
-        #visitor-map img {
+        #visitor-map canvas,
+        #visitor-map iframe {
             display: block !important;
             max-width: 100% !important;
+            height: auto !important;
             margin: 0 auto !important;
             border: 0 !important;
         }
 
-        #visitor-map canvas,
-        #visitor-map svg,
-        #visitor-map img {
-            height: auto !important;
-        }
-
-        .visitor-map-fallback {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            text-align: center;
-            font-size: 0.85rem;
-            color: var(--color-text-faint);
-            padding: 0.6rem;
-        }
-
-        /* ---- Legend under the map ---- */
-        .visitor-map-legend {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.6rem;
-            flex-wrap: wrap;
-            font-size: 0.7rem;
-            line-height: 1.2;
-            color: var(--color-text-muted);
-            padding: 0.2rem 0 0;
-            margin: 0;
-        }
-
-        .visitor-map-legend:empty {
-            display: none;
-        }
-
-        .visitor-map-legend .legend-item {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.3rem;
-        }
-
-        .visitor-map-legend .legend-item i {
-            color: var(--color-text-muted);
-        }
-
-        .visitor-map-legend .legend-dot {
-            width: 9px;
-            height: 9px;
-            border-radius: 50%;
-            display: inline-block;
-            flex-shrink: 0;
-        }
-
-        .legend-dot--self {
-            background: #e67e22;
-            box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.22);
-        }
-
-        .legend-dot--other {
-            background: #1a73e8;
-            box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.18);
-        }
-
-        [data-theme="dark"] .legend-dot--other {
-            background: #6ba3f5;
-            box-shadow: 0 0 0 3px rgba(107, 163, 245, 0.2);
-        }
-
-        .visitor-map-note {
-            flex-basis: 100%;
-            text-align: center;
-            font-size: 0.7rem;
-            color: var(--color-text-faint);
+        #visitor-map iframe {
+            width: 100% !important;
         }
 
         /* ============================================
@@ -1088,14 +950,8 @@
                 height: 42px;
             }
 
-            .visitor-map-wrap {
-                --vm-h: 190px;
-            }
-
-            .visitor-map-head {
-                justify-content: center;
-                text-align: center;
-                margin-bottom: 0.1rem;
+            #visitor-map {
+                --vm-max-w: 100%;
             }
         }
 
@@ -1111,10 +967,6 @@
             .navbar {
                 gap: 0.7rem;
                 font-size: 0.85rem;
-            }
-
-            .visitor-map-wrap {
-                --vm-h: 160px;
             }
         }
 
@@ -1277,6 +1129,14 @@
             <h2 class="section-title" id="news-title">News</h2>
             <div class="news-container" role="region" aria-label="News feed" tabindex="0">
                 <div class="news-item">
+                    <span class="news-date">09/2026</span>
+                    <span class="news-tag tag-paper">Paper</span>
+                    <span class="news-text">New preprint: a paper on <a class="text-link"
+                            href="https://arxiv.org/abs/2609.24138" target="_blank"
+                            rel="noopener noreferrer"><strong>Speech Super-Resolution via Flow
+                                Matching</strong></a>.</span>
+                </div>
+                <div class="news-item">
                     <span class="news-date">08/2026</span>
                     <span class="news-tag tag-paper">Paper</span>
                     <span class="news-text">Our paper <strong>MRMAD</strong> is accepted to <strong>EMNLP Findings
@@ -1374,7 +1234,7 @@
                     <span class="authors">Ningyuan Yang*, <strong>Yize Li*</strong>, Pu Zhao, Diego A. Cuji, Kanad
                         Sarkar, Ryan M. Corey, Xue Lin,
                         Andrew C. Singer.</span>
-                    <span class="venue">Under Review (<strong>2027</strong>).<a class="text-link"
+                    <span class="venue">Under Review (<strong>2026</strong>).<a class="text-link"
                             style="font-style: normal; white-space: nowrap;" href="https://arxiv.org/abs/2609.24138"
                             target="_blank" rel="noopener noreferrer" aria-label="arXiv link for P2Flow">[arXiv]</a> <a
                             class="text-link" style="font-style: normal; white-space: nowrap;"
@@ -1515,18 +1375,11 @@
             <div>© Last update by Yize Li: 2026/09</div>
 
             <div class="visitor-map-wrap">
-                <div class="visitor-map-head">
-                    <span class="vm-title">
-                        <i class="fa-solid fa-earth-americas" aria-hidden="true"></i>
-                        Visitor locations around the world
-                    </span>
-                    <span id="visitor-location">
-                        <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
-                        Locating…
-                    </span>
+                <!-- MapMyVisitors: renders in place, inside #visitor-map -->
+                <div id="visitor-map" role="img" aria-label="World map showing where all visitors are located">
+                    <script type='text/javascript' id='mapmyvisitors'
+                        src='https://mapmyvisitors.com/map.js?cl=ffffff&w=a&t=tt&d=7IhYenpgXwA4nNNBuNo0xdICqncHrrbTll7Pyx-3WBw&cmn=9abc30&co=2d78ad&cmo=ff539d&ct=ffffff'></script>
                 </div>
-                <div id="visitor-map" role="img" aria-label="World map showing where all visitors are located"></div>
-                <div class="visitor-map-legend" id="visitor-map-legend"></div>
             </div>
         </footer>
 
@@ -1797,183 +1650,6 @@
                     raf = null;
                 });
             }, {passive: true});
-        })();
-
-        /* ============================================================
-           Visitor world map — FeedPulse edition
-           ============================================================ */
-        (function () {
-            var mapEl = document.getElementById('visitor-map');
-            if (!mapEl) return;
-
-            var locEl = document.getElementById('visitor-location');
-            var legendEl = document.getElementById('visitor-map-legend');
-
-            var FEEDPULSE_SITE_ID = '02bde74f-335b-4d70-bd2f-888dd424f4d1';
-
-            function toNum(v) {
-                var n = parseFloat(v);
-                return isFinite(n) ? n : null;
-            }
-
-            function escapeHtml(s) {
-                return String(s).replace(/[&<>"']/g, function (c) {
-                    return {
-                        '&': '&amp;',
-                        '<': '&lt;',
-                        '>': '&gt;',
-                        '"': '&quot;',
-                        "'": '&#39;'
-                    }[c];
-                });
-            }
-
-            function labelOf(v) {
-                var parts = [];
-                if (v && v.city) parts.push(v.city);
-                if (v && v.country) parts.push(v.country);
-                if (!parts.length && v && v.region) parts.push(v.region);
-                return parts.join(', ') || 'Unknown location';
-            }
-
-            function fetchVisitor() {
-                var sources = [
-                    function () {
-                        return fetch('https://ipapi.co/json/').then(function (r) {
-                            if (!r.ok) throw new Error('ipapi HTTP ' + r.status);
-                            return r.json();
-                        }).then(function (d) {
-                            if (!d || d.error) throw new Error('ipapi error');
-                            var lat = toNum(d.latitude), lon = toNum(d.longitude);
-                            if (lat === null || lon === null) throw new Error('no coords');
-                            return {
-                                lat: lat,
-                                lon: lon,
-                                city: d.city,
-                                region: d.region,
-                                country: d.country_name || d.country
-                            };
-                        });
-                    },
-                    function () {
-                        return fetch('https://ipwho.is/').then(function (r) {
-                            if (!r.ok) throw new Error('ipwho HTTP ' + r.status);
-                            return r.json();
-                        }).then(function (d) {
-                            if (!d || d.success === false) throw new Error('ipwho error');
-                            var lat = toNum(d.latitude), lon = toNum(d.longitude);
-                            if (lat === null || lon === null) throw new Error('no coords');
-                            return {
-                                lat: lat,
-                                lon: lon,
-                                city: d.city,
-                                region: d.region,
-                                country: d.country
-                            };
-                        });
-                    },
-                    function () {
-                        return fetch('https://get.geojs.io/v1/ip/geo.json').then(function (r) {
-                            if (!r.ok) throw new Error('geojs HTTP ' + r.status);
-                            return r.json();
-                        }).then(function (d) {
-                            var lat = toNum(d && d.latitude), lon = toNum(d && d.longitude);
-                            if (lat === null || lon === null) throw new Error('no coords');
-                            return {
-                                lat: lat,
-                                lon: lon,
-                                city: d.city,
-                                region: d.region,
-                                country: d.country
-                            };
-                        });
-                    }
-                ];
-
-                var i = 0;
-                function next() {
-                    if (i >= sources.length) {
-                        return Promise.reject(new Error('all geolocation sources failed'));
-                    }
-                    return sources[i++]().catch(next);
-                }
-                return next();
-            }
-
-            function updateLocationLabel(v) {
-                if (!locEl) return;
-                locEl.innerHTML =
-                    '<i class="fa-solid fa-location-dot" aria-hidden="true"></i> You: ' +
-                    escapeHtml(labelOf(v));
-            }
-
-            function setLegend(state) {
-                if (!legendEl) return;
-
-                if (state === 'ready') {
-                    legendEl.innerHTML =
-                        '<span class="legend-item">';
-                } else if (state === 'error') {
-                    legendEl.innerHTML =
-                        '<span class="visitor-map-note">' +
-                        '<i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> ' +
-                        'Visitor map service is temporarily unavailable' +
-                        '</span>';
-                } else {
-                    legendEl.innerHTML =
-                        '<span class="visitor-map-note">' +
-                        '<i class="fa-solid fa-circle-info" aria-hidden="true"></i> ' +
-                        'Replace YOUR_FEEDPULSE_SITE_ID in the HTML to enable the all-visitor map' +
-                        '</span>';
-                }
-            }
-
-            function loadFeedPulseMap() {
-                var siteId = String(FEEDPULSE_SITE_ID || '').trim();
-
-                if (!siteId || siteId === 'YOUR_FEEDPULSE_SITE_ID') {
-                    mapEl.innerHTML =
-                        '<div class="visitor-map-fallback">' +
-                        '<i class="fa-solid fa-earth-americas" aria-hidden="true"></i>' +
-                        '<span>FeedPulse Site ID not configured yet</span>' +
-                        '</div>';
-                    setLegend('setup');
-                    return;
-                }
-
-                mapEl.innerHTML = '';
-
-                var script = document.createElement('script');
-                script.async = true;
-                script.src =
-                    'https://feed-pulse.com/api/embed/visitor-globe.js?site_id=' +
-                    encodeURIComponent(siteId) +
-                    '&map=flat&sz=med&theme=sky&speed=fast';
-
-                script.onerror = function () {
-                    mapEl.innerHTML =
-                        '<div class="visitor-map-fallback">' +
-                        '<i class="fa-solid fa-globe" aria-hidden="true"></i>' +
-                        '<span>Visitor map unavailable</span>' +
-                        '</div>';
-                    setLegend('error');
-                };
-
-                mapEl.appendChild(script);
-                setLegend('ready');
-            }
-
-            loadFeedPulseMap();
-
-            fetchVisitor()
-                .then(updateLocationLabel)
-                .catch(function () {
-                    if (locEl) {
-                        locEl.innerHTML =
-                            '<i class="fa-solid fa-location-dot" aria-hidden="true"></i> ' +
-                            'Location unavailable';
-                    }
-                });
         })();
     </script>
 
